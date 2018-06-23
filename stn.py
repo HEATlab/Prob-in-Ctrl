@@ -91,7 +91,6 @@ class Edge(object):
 
 
     ##
-    #  \fn getWeight
     #  \brief gets the weight of the edge between Vertex i and j
     #
     #  \param i the starting node of the edge
@@ -194,7 +193,6 @@ class STN(object):
 
 
     ##
-    # \fn copy
     # \brief Returns a copy of the STN
     #
     # @return a copy of the original STN
@@ -211,7 +209,6 @@ class STN(object):
 
 
     ##
-    # \fn getSubSTN
     # \brief Generates a subSTN from a given vertex list
     #
     # @param vertexList         A List of Vertex objects that are part of the
@@ -237,7 +234,6 @@ class STN(object):
 
 
     ##
-    # \fn addVertex
     # \brief Takes in parameters of a vertex and adds the vertex to the STN
     #
     # @param nodeID       The unique ID number of the vertex in the STN.
@@ -248,7 +244,6 @@ class STN(object):
 
 
     ##
-    # \fn addCreatedVertex
     # \brief Takes in a vertex and adds it to the STN
     #
     # @param vertex        The vertex to be added to the STN
@@ -261,7 +256,6 @@ class STN(object):
 
 
     ##
-    # \fn addEdge
     # \brief Takes in the parameters of an edge and adds the edge to the STN
     #
     # @param i            The starting node of the edge.
@@ -291,7 +285,6 @@ class STN(object):
 
 
     ##
-    # \fn addCreatedEdge
     # \brief Takes in a Edge object and adds it to the STN.
     #
     # @param edge    A new Edge object to be added to the STN.
@@ -328,7 +321,6 @@ class STN(object):
     # -------------------------------------------------------------------------
 
     ##
-    # \fn getAllVerts
     # \brief Gets all the Nodes in the STN
     #
     # @return Returns an unordered List of all Node objects in the STN.
@@ -337,7 +329,6 @@ class STN(object):
 
 
     ##
-    #  \fn getEdges
     #  \brief Get a list of edges incident to this node
     #
     #  \param nodeID The ID of the vertex
@@ -348,7 +339,6 @@ class STN(object):
 
 
     ##
-    #  \fn getDegree
     #  \brief Returns the degree (number of edges) of a vertex
     #
     #  \param nodeID The ID of the vertex.
@@ -359,7 +349,6 @@ class STN(object):
 
 
     ##
-    #  \fn getAdjacent
     #  \brief Returns a list of nodes adjacent to a given node
     #
     #  \param nodeID The ID of the node
@@ -377,7 +366,6 @@ class STN(object):
 
 
     ##
-    #  \fn removeVertex
     #  \brief Removes a node from the STP
     #
     #  \param nodeID the ID of the node to be removed
@@ -407,7 +395,6 @@ class STN(object):
 
 
     ##
-    # \fn getVertex
     # \brief Gets a node from the STP
     #
     # @param nodeID Integer representing the gloabl ID of the node to get.
@@ -427,7 +414,6 @@ class STN(object):
     # -------------------------------------------------------------------------
 
     ##
-    # \fn getEdge
     # \brief Gets an Edge from the STP.
     #
     # \details Direction is not accounted for.
@@ -447,7 +433,6 @@ class STN(object):
 
 
     ##
-    # \fn getAllEdges
     # \brief Gets all edges of the STP
     #
     # @return Returns list of all edges in the STP
@@ -456,7 +441,6 @@ class STN(object):
 
 
     ##
-    # \fn getEdgeWeight
     # \brief Gets a directed edge weight of an edge from the STP
     #
     # \details Direction does matter. If no edge exists between i & j, return
@@ -482,7 +466,6 @@ class STN(object):
 
 
     ##
-    # \fn edgeExists
     # \brief Checks if an edge exists in the STP, regardless of direction.
     #
     # @param i The first Node of the edge.
@@ -495,7 +478,6 @@ class STN(object):
 
 
     ##
-    # \fn updateEdge
     # \brief Updates the edge with Node objects i & j.
     #
     # \details Update if the new weight is less than the original weight.
@@ -535,7 +517,6 @@ class STN(object):
 
 
     ##
-    # \fn getIncoming
     # \brief Get all incoming edges for a given vertex
     #
     # @param nodeID Integer representing the gloabl ID of the node.
@@ -548,7 +529,6 @@ class STN(object):
 
 
     ##
-    # \fn getOutgoing
     # \brief Get all outgoing edges for a given vertex
     #
     # @param nodeID Integer representing the gloabl ID of the node.
@@ -561,7 +541,6 @@ class STN(object):
 
 
     ##
-    # \fn getIncomingContingent
     # \brief Get all incoming edges for a given vertex
     #
     # \details the input vertex needs to be an uncontrollable nodes. Otherwise
@@ -591,7 +570,6 @@ class STN(object):
     # -------------------------------------------------------------------------
 
     ##
-    # \fn setMakespan
     # \brief set the makespan of the STN
     #
     # @param makespan a number representing the total time allowed for the STN
@@ -644,7 +622,6 @@ class STN(object):
 
 
     ##
-    #  \fn minimal()
     #  \brief Runs the Floyd-Warshal algorithm on an STN
     #
     #  @return Return a STN object that is the minimal network of the original
@@ -673,7 +650,6 @@ class STN(object):
 
 
     ##
-    # \fn inConsistent
     # \brief Run minimal STN and check if the STN is consistent or not
     #
     # @return Returns true if the given STN is consistent. Otherwise, returns
@@ -683,14 +659,7 @@ class STN(object):
 
 
 
-
-
-    # An STN is strongly controllable if any assignment of values for executable
-    #   timepoints is guaranteed to be consistent with all constraints
-    #   (irrespective of contingent edges) (copied from Lund et al. 2017).
-
     ##
-    # \fn isStronglyControllable
     # \brief check whether the input STNU is strongly controllable or not
     #
     # \details   An STN is strongly controllable if any assignment of
