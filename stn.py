@@ -274,6 +274,7 @@ class STN(object):
     # @post               A new edge, generated from the arguments is added to
     #                     the STN.
     def addEdge(self, i, j, Tmin, Tmax, type='stc', distribution=None):
+        assert i in self.verts and j in self.verts
         newEdge = Edge(i, j, Tmin, Tmax, type, distribution)
 
         if type == 'stc':
@@ -299,6 +300,8 @@ class STN(object):
     def addCreatedEdge(self, edge):
         i = edge.i
         j = edge.j
+
+        assert i in self.verts and j in self.verts
 
         if edge.type == 'stc':
             self.requirementEdges[(i,j)] = edge
@@ -396,6 +399,7 @@ class STN(object):
                 del self.edges[(i,j)]
 
                 if (i,j) in self.contingentEdges:
+                    self.uncontrollables.remove(j)
                     del self.contingentEdges[(i,j)]
 
                 if (i,j) in self.requirementEdges:
@@ -594,6 +598,8 @@ class STN(object):
     #                 in milliseconds
     #
     # @post STN with makespan set to the input value
+    #
+    # FIXME: need to have constraint between zero timepoint and every vertex
     def setMakespan(self,makespan):
         self.makespan = makespan
         currentMakespan = 0
@@ -612,6 +618,8 @@ class STN(object):
 
     ##
     # \brief Return a ready-for-json dictionary of this STN
+    # FIXME: if no zero time point constraint, make the interval 0 to infinity
+    #        now is -infinity to infinity
     def forJSON(self):
         jsonSTN = {}
 
@@ -696,6 +704,8 @@ class STN(object):
     #
     # @return Returns True if STNU is strongly controllable, and False otherwise
     #         If returnSTN is True, then also return the reduced STN
+    #
+    # TODO: need to test this with exampless
     def isStronglyControllable(self, debug=False, returnSTN = False):
 
         if not self.isConsistent():
