@@ -267,7 +267,7 @@ class STN(object):
     #                     the STN.
     def addEdge(self, i, j, Tmin, Tmax, type='stc', distribution=None):
         assert i in self.verts and j in self.verts
-        assert (i,j) not in self.edges
+        assert (i,j) not in self.edges and (j,i) not in self.edges
         newEdge = Edge(i, j, Tmin, Tmax, type, distribution)
 
         if type == 'stc':
@@ -293,7 +293,7 @@ class STN(object):
         i = edge.i
         j = edge.j
 
-        assert (i,j) not in self.edges
+        assert (i,j) not in self.edges and (j,i) not in self.edges
         assert i in self.verts and j in self.verts
 
         if edge.type == 'stc':
@@ -528,7 +528,6 @@ class STN(object):
     # @param w The new weight to try to update with.
     #
     # @return Returns boolean whether or not the update actually occured.
-    # TODO: Test
     def modifyEdge(self,i,j,w):
         e = self.getEdge(i,j)
 
@@ -602,7 +601,6 @@ class STN(object):
     # @param j The node ID for the second node in the edge
     #
     # @post A STN with edge between node i and j removed
-    # TODO: Test
     def removeEdge(self, i, j):
         if not self.edgeExists(i,j):
             raise ValueError("The input edge does not exist")
@@ -630,19 +628,20 @@ class STN(object):
     # \brief Convert an input STN to distance matrix format
     #
     # @return a distance matrix that represents an input STN
-    # TODO: Test
     def toMatrix(self):
         num = len(self.verts) if 0 in self.verts else len(self.verts)+1
-        matrix = [ [float('inf')]*num ] *num
+        matrix = []
 
         for i in range(num):
+            row = []
             for j in range(num):
                 dis = self.getEdgeWeight(i,j)
 
                 if j == 0 and (i,j) not in self.edges:
                     dis = 0
 
-                matrix[i][j] = dis
+                row.append(dis)
+            matrix.append(row)
 
         return matrix
 
@@ -657,39 +656,36 @@ class STN(object):
     #                 in milliseconds
     #
     # @post STN with makespan set to the input value
-    # TODO: Test
     def setMakespan(self,makespan):
         self.makespan = makespan
-        # currentMakespan = 0
-        # for vert in self.verts:
-        #     if vert != 0:
-        #         val = self.edges[(0,vert)].Cij
-        #         if val > currentMakespan:
-        #             currentMakespan = val
-        #
-        #     for vert in self.verts:
-        #         if vert != 0:
-        #             if self.edges[(0,vert)].Cij == currentMakespan:
-        #                 self.edges[(0,vert)].Cij = makespan
 
+        if 0 not in self.verts:
+            self.addVertex(self.Z_TIMEPOINT)
+
+        count = 0
         for vert in self.verts:
             if vert != 0:
                 val = self.getEdgeWeight(0, vert)
                 if val > makespan:
-                    if 0 not in self.verts:
-                        self.addVertex(self.Z_TIMEPOINT)
-
                     if (0,vert) in self.edges:
                         self.modifyEdge(0,vert,makespan)
                     else:
                         self.addEdge(0,vert,0,makespan,type='stc')
+                else:
+                    count += 1
+
+        if count == len(self.verts)-1:
+            for vert in self.verts:
+                if vert != 0:
+                    self.modifyEdge(0, vert, makespan)
+
+
 
 
     ##
     # \brief Return a ready-for-json dictionary of this STN
     #
     # @return a json object that is ready to store for future use
-    # TODO: test
     def forJSON(self):
         jsonSTN = {}
 
@@ -717,12 +713,18 @@ class STN(object):
 
     ##
     # \brief Write the STN object to a json file for later use
-    # TODO: Test
+    #
+    # @param name  The name of the output json file
+    # @param path  The directory we should store the output file to
+    #
+    # @post a JSON file containing STN info stored to desired directory
     def toJSON(self, name, path):
         jsonstr = self.forJSON()
 
-        with open(path + '/' + name, 'w') as outfile:
-            json.dump(data, outfile)
+        with open(path + name, 'w') as outfile:
+            json.dump(jsonstr, outfile)
+
+        outfile.close()
 
 
 
@@ -731,24 +733,12 @@ class STN(object):
     #
     #  @return Return a STN object that is the minimal network of the original
     #          STN. If the input STN is not consistent, return None
-    #
-    # FIXME: : Something is wrong, if don't add the vertex in order, it doesn't
-    #       work.
     def minimal(self):
         minSTN = self.copy()
 
 
         verts = list(range(len(minSTN.verts)))
         B = [ [minSTN.getEdgeWeight(i,j) for j in verts] for i in verts ]
-        # B = self.toMatrix()
-
-        # verts = list(minSTN.verts.keys())
-        # B = [ [minSTN.getEdgeWeight(i,j) for j in verts] for i in verts ]
-        # for k in range(len(verts)):
-        #     for i in range(len(verts)):
-        #         for j in range(len(verts)):
-        #             B[i][j] = min(B[i][j], B[i][k] + B[k][j])
-        #             minSTN.updateEdge(verts[i],verts[j],B[i][j])
 
         for k in verts:
             for i in verts:
@@ -773,64 +763,6 @@ class STN(object):
         return self.minimal() != None
 
 
-    ##
-    # \brief Check if a given input STN is valid
-    #
-    # \details Mainly designed for STNU. Check incoming contingent edges for
-    #          uncontrollables, incoming edges for controllables, makespan.
-    #          Vertices of an edge need to be in STN. An edge is either
-    #          contingent or requirement. Second node of contingent edge is
-    #          uncontrollable and second node of requirement is controllable.
-    #          Lower bound of edge cannot be higher than upper bound.
-    #
-    # @return Returns true if the given STN is valid. Otherwise, returns
-    #         False
-    # TODO: Test
-    def isValid(self):
-        for vert in self.verts:
-            if vert in self.uncontrollables:
-                ctg = [(i,j) for (i,j) in self.contingentEdges if j==vert]
-                if len(ctg) != 1:
-                    return False
-            else:
-                incoming = self.getIncoming(vert)
-                for e in incoming:
-                    if e not in self.requirementEdges:
-                        return False
-
-            max_domain = self.getEdgeWeight(0, vert)
-            if self.makespan and max_domain > self.makespan:
-                return False
-
-        for e in self.edges:
-            if e[0] not in self.verts or e[1] not in self.verts:
-                return False
-
-            if -e.Cji > e.Cij:
-                return False
-
-            elif e in self.requirementEdges and e in self.contingentEdges:
-                return False
-
-            elif e not in self.requirementEdges and \
-                            e not in self.contingentEdges:
-                return False
-
-            elif e in self.contingentEdges and e[1] not in self.uncontrollables:
-                return False
-
-            elif e in self.requirementEdges and e[1] in self.uncontrollables:
-                return False
-
-        return True
-
-
-
-
-
-
-
-
 
 
     ##
@@ -847,8 +779,6 @@ class STN(object):
     #
     # @return Returns True if STNU is strongly controllable, and False otherwise
     #         If returnSTN is True, then also return the reduced STN
-    #
-    # TODO: need to test this with exampless
     def isStronglyControllable(self, debug=False, returnSTN = False):
 
         if not self.isConsistent():
