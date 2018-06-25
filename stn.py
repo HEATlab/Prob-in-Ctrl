@@ -1,4 +1,5 @@
 import math
+import json
 
 ## \file stntools.py
 #  \brief tools for working with STNs
@@ -130,12 +131,6 @@ class Edge(object):
 ##
 # \class STN
 # \brief A representation of an entire STN.
-# TODO: make a function to check whether the stn(u) is valid or not
-# TODO: new function for remove Edges
-# TODO: new function for modify constraints
-# TODO: new function to check if the stn is valid
-# TODO: stn to matrix function
-
 class STN(object):
 
     ## The Zero Timepoint.
@@ -183,7 +178,8 @@ class STN(object):
         for (i,j),edge in sorted(self.edges.items()):
 
             if edge.i == 0:
-                toPrint += "Vertex {}: [{}, {}]".format(edge.j,-edge.Cji,edge.Cij)
+                toPrint += "Vertex {}: [{}, {}]".format(edge.j,\
+                                                        -edge.Cji,edge.Cij)
             else:
                 toPrint += "Edge {} => {}: [{}, {}]".format(edge.i,
                                                 edge.j,-edge.Cji,edge.Cij)
@@ -240,6 +236,7 @@ class STN(object):
     #
     # @post a new vertex is added to STN
     def addVertex(self, nodeID):
+        assert nodeID not in self.verts
         self.verts[nodeID] = Vertex(nodeID)
 
 
@@ -251,6 +248,7 @@ class STN(object):
     # @post a new vertex is added to STN
     def addCreatedVertex(self, vertex):
         nodeID = vertex.nodeID
+        assert nodeID not in self.verts
         self.verts[nodeID] = vertex
 
 
@@ -269,6 +267,7 @@ class STN(object):
     #                     the STN.
     def addEdge(self, i, j, Tmin, Tmax, type='stc', distribution=None):
         assert i in self.verts and j in self.verts
+        assert (i,j) not in self.edges
         newEdge = Edge(i, j, Tmin, Tmax, type, distribution)
 
         if type == 'stc':
@@ -294,6 +293,7 @@ class STN(object):
         i = edge.i
         j = edge.j
 
+        assert (i,j) not in self.edges
         assert i in self.verts and j in self.verts
 
         if edge.type == 'stc':
@@ -516,6 +516,35 @@ class STN(object):
                 return False
 
 
+
+
+    ##
+    # \brief Update the weight of edge with node objects i & j.
+    #
+    # \details Mofidy the constraint regardless of what new edge weight is.
+    #
+    # @param i The starting Node of the edge.
+    # @param j The ending Node of the edge.
+    # @param w The new weight to try to update with.
+    #
+    # @return Returns boolean whether or not the update actually occured.
+    # TODO: Test
+    def modifyEdge(self,i,j,w):
+        e = self.getEdge(i,j)
+
+        if e == None:
+            return False
+
+        else:
+            if e.i == i and e.j==j:
+                e.Cij = w
+            else:
+                e.Cji = w
+
+            return True
+
+
+
     ##
     # \brief Get all incoming edges for a given vertex
     #
@@ -553,7 +582,8 @@ class STN(object):
     #         uncontrollable vertex
     def getIncomingContingent(self, nodeID):
         assert nodeID in self.uncontrollables
-        ctg = [self.contingentEdges[(i,j)] for (i,j) in self.contingentEdges if j == nodeID]
+        ctg = [self.contingentEdges[(i,j)] for (i,j) in self.contingentEdges \
+                                                            if j == nodeID]
 
         if len(ctg) != 1:
             print('E: {} incoming contingent edges!\n{}'.format(len(ctg), ctg))
@@ -563,11 +593,62 @@ class STN(object):
 
 
 
+    ##
+    # \brief Remove an input egde from the STN
+    #
+    # \details Direction does not matter.
+    #
+    # @param i The node ID for the first node in the edge
+    # @param j The node ID for the second node in the edge
+    #
+    # @post A STN with edge between node i and j removed
+    # TODO: Test
+    def removeEdge(self, i, j):
+        if not self.edgeExists(i,j):
+            raise ValueError("The input edge does not exist")
+
+        to_remove = (i,j) if (i,j) in self.edges else (j,i)
+        del self.edges[to_remove]
+
+        if to_remove in self.contingentEdges:
+            del self.contingentEdges[to_remove]
+            self.uncontrollables.remove(to_remove[1])
+
+        else:
+            del self.requirementEdges[to_remove]
+
+
+
 
 
     # -------------------------------------------------------------------------
     # Other functions #
     # -------------------------------------------------------------------------
+
+
+    ##
+    # \brief Convert an input STN to distance matrix format
+    #
+    # @return a distance matrix that represents an input STN
+    # TODO: Test
+    def toMatrix(self):
+        num = len(self.verts) if 0 in self.verts else len(self.verts)+1
+        matrix = [ [float('inf')]*num ] *num
+
+        for i in range(num):
+            for j in range(num):
+                dis = self.getEdgeWeight(i,j)
+
+                if j == 0 and (i,j) not in self.edges:
+                    dis = 0
+
+                matrix[i][j] = dis
+
+        return matrix
+
+
+
+
 
     ##
     # \brief set the makespan of the STN
@@ -576,28 +657,39 @@ class STN(object):
     #                 in milliseconds
     #
     # @post STN with makespan set to the input value
-    #
-    # FIXME: need to have constraint between zero timepoint and every vertex
+    # TODO: Test
     def setMakespan(self,makespan):
         self.makespan = makespan
-        currentMakespan = 0
+        # currentMakespan = 0
+        # for vert in self.verts:
+        #     if vert != 0:
+        #         val = self.edges[(0,vert)].Cij
+        #         if val > currentMakespan:
+        #             currentMakespan = val
+        #
+        #     for vert in self.verts:
+        #         if vert != 0:
+        #             if self.edges[(0,vert)].Cij == currentMakespan:
+        #                 self.edges[(0,vert)].Cij = makespan
 
         for vert in self.verts:
             if vert != 0:
-                val = self.edges[(0,vert)].Cij
-                if val > currentMakespan:
-                    currentMakespan = val
+                val = self.getEdgeWeight(0, vert)
+                if val > makespan:
+                    if 0 not in self.verts:
+                        self.addVertex(self.Z_TIMEPOINT)
 
-        for vert in self.verts:
-            if vert != 0:
-                if self.edges[(0,vert)].Cij == currentMakespan:
-                    self.edges[(0,vert)].Cij = makespan
+                    if (0,vert) in self.edges:
+                        self.modifyEdge(0,vert,makespan)
+                    else:
+                        self.addEdge(0,vert,0,makespan,type='stc')
 
 
     ##
     # \brief Return a ready-for-json dictionary of this STN
-    # FIXME: if no zero time point constraint, make the interval 0 to infinity
-    #        now is -infinity to infinity
+    #
+    # @return a json object that is ready to store for future use
+    # TODO: test
     def forJSON(self):
         jsonSTN = {}
 
@@ -607,7 +699,9 @@ class STN(object):
             if v.nodeID == 0:
                 continue
             json = v.forJSON()
-            json['min_domain'] = -self.getEdgeWeight(v.nodeID,0)
+
+            json['min_domain'] = -self.getEdgeWeight(v.nodeID,0) \
+                                    if (v.nodeID, 0) in self.edges else 0
             json['max_domain'] = self.getEdgeWeight(0,v.nodeID)
             jsonSTN['nodes'].append(json)
 
@@ -619,6 +713,17 @@ class STN(object):
             jsonSTN['constraints'].append(c.forJSON())
 
         return jsonSTN
+
+
+    ##
+    # \brief Write the STN object to a json file for later use
+    # TODO: Test
+    def toJSON(self, name, path):
+        jsonstr = self.forJSON()
+
+        with open(path + '/' + name, 'w') as outfile:
+            json.dump(data, outfile)
+
 
 
     ##
@@ -635,12 +740,22 @@ class STN(object):
 
         verts = list(range(len(minSTN.verts)))
         B = [ [minSTN.getEdgeWeight(i,j) for j in verts] for i in verts ]
+        # B = self.toMatrix()
+
+        # verts = list(minSTN.verts.keys())
+        # B = [ [minSTN.getEdgeWeight(i,j) for j in verts] for i in verts ]
+        # for k in range(len(verts)):
+        #     for i in range(len(verts)):
+        #         for j in range(len(verts)):
+        #             B[i][j] = min(B[i][j], B[i][k] + B[k][j])
+        #             minSTN.updateEdge(verts[i],verts[j],B[i][j])
 
         for k in verts:
             for i in verts:
                 for j in verts:
                     B[i][j] = min(B[i][j], B[i][k] + B[k][j])
                     minSTN.updateEdge(i,j,B[i][j])
+                    # minSTN.updateEdge()
 
         for e in minSTN.getAllEdges():
             if e.getWeightMin() > e.getWeightMax():
@@ -656,6 +771,65 @@ class STN(object):
     #         False
     def isConsistent(self):
         return self.minimal() != None
+
+
+    ##
+    # \brief Check if a given input STN is valid
+    #
+    # \details Mainly designed for STNU. Check incoming contingent edges for
+    #          uncontrollables, incoming edges for controllables, makespan.
+    #          Vertices of an edge need to be in STN. An edge is either
+    #          contingent or requirement. Second node of contingent edge is
+    #          uncontrollable and second node of requirement is controllable.
+    #          Lower bound of edge cannot be higher than upper bound.
+    #
+    # @return Returns true if the given STN is valid. Otherwise, returns
+    #         False
+    # TODO: Test
+    def isValid(self):
+        for vert in self.verts:
+            if vert in self.uncontrollables:
+                ctg = [(i,j) for (i,j) in self.contingentEdges if j==vert]
+                if len(ctg) != 1:
+                    return False
+            else:
+                incoming = self.getIncoming(vert)
+                for e in incoming:
+                    if e not in self.requirementEdges:
+                        return False
+
+            max_domain = self.getEdgeWeight(0, vert)
+            if self.makespan and max_domain > self.makespan:
+                return False
+
+        for e in self.edges:
+            if e[0] not in self.verts or e[1] not in self.verts:
+                return False
+
+            if -e.Cji > e.Cij:
+                return False
+
+            elif e in self.requirementEdges and e in self.contingentEdges:
+                return False
+
+            elif e not in self.requirementEdges and \
+                            e not in self.contingentEdges:
+                return False
+
+            elif e in self.contingentEdges and e[1] not in self.uncontrollables:
+                return False
+
+            elif e in self.requirementEdges and e[1] in self.uncontrollables:
+                return False
+
+        return True
+
+
+
+
+
+
+
 
 
 
