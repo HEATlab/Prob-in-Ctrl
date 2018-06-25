@@ -637,7 +637,7 @@ class STN(object):
             for j in range(num):
                 dis = self.getEdgeWeight(i,j)
 
-                if j == 0 and (i,j) not in self.edges:
+                if j == 0 and dis == float('inf'):
                     dis = 0
 
                 row.append(dis)
