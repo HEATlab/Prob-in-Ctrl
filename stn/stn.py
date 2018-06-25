@@ -832,7 +832,7 @@ class STN(object):
                 lower_bound = -e.Cji + u_i - l_j
                 upper_bound =  e.Cij + l_i - u_j
 
-                if (i,j) in newSTN.edges:
+                if (i,j) in newSTN.edges or (j,i) in newSTN.edges:
                     newSTN.updateEdge(i,j,upper_bound)
                     newSTN.updateEdge(j,i,-lower_bound)
                     if debug:
