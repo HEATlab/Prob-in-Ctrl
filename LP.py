@@ -4,6 +4,13 @@ from pulp import *
 import math
 import json
 
+
+##
+# \brief A global variable that stores the max float that will be used to deal
+#        with infinite edges.
+MAX_FLOAT = 100000000000000000
+
+
 ## \file LP.py
 #  \brief Convert an input STNU to LP form and computes the degree of
 #         controllability
@@ -44,6 +51,23 @@ def setUp(STN, super=True, two_step=False):
         prob = LpProblem('Max Subinterval LP', LpMinimize)
 
     # ##
+    # NOTE: Our LP requires each event to occur within a finite interval. If
+    #       the input LP does not have finite interval specified for all
+    #       events, we want to set the setMakespan to MAX_FLOAT (infinity)
+    #       so the LP works
+    #
+    #       We do not want to run minimal network first because we are going to
+    #       modify the contingent edges in LP, while some constraints in
+    #       minimal network are obtained through contingent edges
+    #
+    #       There might be better way to deal with this problem.
+    # ##
+    for i in STN.verts:
+        if STN.getEdgeWeight(0,i) == float('inf'):
+            STN.setMakespan(MAX_FLOAT)
+            break
+
+    # ##
     # Store Original STN edges and objective variables for easy access.
     # Not part of LP yet
     # ##
@@ -51,8 +75,10 @@ def setUp(STN, super=True, two_step=False):
         bounds[(i,'+')] = LpVariable('t_%i_hi'%i, lowBound=0,
                                             upBound=STN.getEdgeWeight(0,i))
 
-        bounds[(i,'-')] = LpVariable('t_%i_lo'%i,
-                                lowBound=-STN.getEdgeWeight(i,0), upBound=None)
+        lowbound = 0 if STN.getEdgeWeight(i,0) == float('inf') else\
+                            -STN.getEdgeWeight(i,0)
+        bounds[(i,'-')] = LpVariable('t_%i_lo'%i, lowBound=lowbound,
+                                                            upBound=None)
 
         addConstraint( bounds[(i,'-')] <= bounds[(i,'+')], prob)
 
@@ -63,7 +89,18 @@ def setUp(STN, super=True, two_step=False):
 
     # If applying two_step method, only one epsilon is needed
     if two_step:
-        epsilons[('eps','-')] = LpVariable('eps', lowBound=0, upBound=None)
+        upbound = None
+
+        # ##
+        # NOTE: If we do not set this bound, the epsilon does not make sense
+        #       for one of our examples. Set up this first, maybe change in
+        #       the future
+        # ##
+        if not super:
+            intL = [(e.Cij + e.Cji) for e in STN.contingentEdges.values()]
+            upbound = min(intL) / 2
+
+        epsilons[('eps','-')] = LpVariable('eps', lowBound=0, upBound=upbound)
 
     for i,j in STN.edges:
         if (i,j) in STN.contingentEdges:
@@ -98,8 +135,13 @@ def setUp(STN, super=True, two_step=False):
                         -STN.getEdgeWeight(j,i) + epsilons[('eps','-')], prob)
 
         else:
+            # NOTE: We need to handle the infinite weight edges. Otherwise
+            #       the LP would be infeasible
+            upbound = MAX_FLOAT if STN.getEdgeWeight(i,j) == float('inf') \
+                                            else STN.getEdgeWeight(i,j)
+
             addConstraint(bounds[(j,'+')]-bounds[(i,'-')] <=
-                                            STN.getEdgeWeight(i,j), prob)
+                                            upbound, prob)
             addConstraint(bounds[(i,'+')]-bounds[(j,'-')] <=
                                             STN.getEdgeWeight(j,i), prob)
 
@@ -126,7 +168,9 @@ def originalLP(STN, super=True, two_step=False, naiveObj=True, debug=False):
 
     # Set up objective function for the LP
     if naiveObj or (two_step and not naiveObj):
-        Obj = sum([epsilons[(i,j)] for i,j in epsilons])
+        #Obj = sum([epsilons[(i,j)] for i,j in epsilons])
+        Obj = epsilons[('eps','-')] if two_step \
+                            else sum([epsilons[(i,j)] for i,j in epsilons])
     else:
         eps = []
         for i,j in STN.contingentEdges:
