@@ -55,7 +55,9 @@ def loadSTNfromJSONobj(jsonSTN, using_PSTN=False):
     # Add the vertices
     for v in jsonSTN['nodes']:
         stn.addVertex(v['node_id'])
-        stn.addEdge(0, v['node_id'], float(v['min_domain']),
+
+        if len(v) == 3:
+            stn.addEdge(0, v['node_id'], float(v['min_domain']),
                                                 float(v['max_domain']))
 
 

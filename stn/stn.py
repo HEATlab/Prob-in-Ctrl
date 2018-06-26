@@ -696,15 +696,16 @@ class STN(object):
                 continue
             json = v.forJSON()
 
-            if self.getEdgeWeight(v.nodeID,0) == float('inf'):
-                json['min_domain'] = 0
-            else:
-                json['min_domain'] = -self.getEdgeWeight(v.nodeID,0)
+            if self.edgeExists(0,v.nodeID):
+                if self.getEdgeWeight(v.nodeID,0) == float('inf'):
+                    json['min_domain'] = 0
+                else:
+                    json['min_domain'] = -self.getEdgeWeight(v.nodeID,0)
 
-            if self.getEdgeWeight(0,v.nodeID) == float('inf'):
-                json['max_domain'] = 'inf'
-            else:
-                json['max_domain'] = self.getEdgeWeight(0,v.nodeID)
+                if self.getEdgeWeight(0,v.nodeID) == float('inf'):
+                    json['max_domain'] = 'inf'
+                else:
+                    json['max_domain'] = self.getEdgeWeight(0,v.nodeID)
 
             jsonSTN['nodes'].append(json)
 
