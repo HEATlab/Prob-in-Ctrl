@@ -29,18 +29,18 @@ def addConstraint(constraint,problem):
 
 
 ##
-# \fn setUp(STN, super=True, two_step=False)
+# \fn setUp(STN, super=True, uniform_step=False)
 # \brief Initializes the LP problem and the LP variables
 #
 # @param STN        An input STNU
 # @param super      Flag indicating if we want to solve for Superintercal
 #                   (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param two_step   Flag indicating if we are applying the two step method with
+# @param uniform_step   Flag indicating if we are applying the two step method with
 #                   only one universal epsilon
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
-def setUp(STN, super=True, two_step=False):
+def setUp(STN, super=True, uniform_step=False):
     bounds = {}
     epsilons = {}
 
@@ -87,8 +87,8 @@ def setUp(STN, super=True, two_step=False):
             addConstraint(bounds[(i,'+')] == 0, prob)
 
 
-    # If applying two_step method, only one epsilon is needed
-    if two_step:
+    # If applying uniform_step method, only one epsilon is needed
+    if uniform_step:
         upbound = None
 
         # ##
@@ -104,7 +104,7 @@ def setUp(STN, super=True, two_step=False):
 
     for i,j in STN.edges:
         if (i,j) in STN.contingentEdges:
-            if not two_step:
+            if not uniform_step:
                 epsilons[(j,'+')] = LpVariable('eps_%i_hi'%j, lowBound=0,
                                                                 upBound=None)
                 epsilons[(j,'-')] = LpVariable('eps_%i_lo'%j, lowBound=0,
@@ -115,6 +115,17 @@ def setUp(STN, super=True, two_step=False):
                             STN.getEdgeWeight(i,j) + epsilons[(j,'+')], prob)
                     addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
                             -STN.getEdgeWeight(j,i) - epsilons[(j,'-')], prob)
+
+
+                    # ##
+                    # NOTE: A contingent interval cannot have negative lower
+                    #       bound. This is not an issue for Wilson's LP because
+                    #       the Max Subinterval always make the lower bound
+                    #       larger. But we need to make sure that we add this
+                    #       constraint here.
+                    # ##
+                    addConstraint(-STN.getEdgeWeight(j,i) -
+                                            epsilons[(j,'-')] >= 0, prob)
 
                 else:
                     addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
@@ -151,25 +162,25 @@ def setUp(STN, super=True, two_step=False):
 
 
 ##
-# \fn originalLP(STN, super=True, two_step=False, naiveObj=True, debug=False)
+# \fn originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False)
 # \brief Runs the LP on the input STN
 #
 # @param STN        An input STNU
 # @param super      Flag indicating if we want to solve for Superintercal
 #                   (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param two_step   Flag indicating if we are applying the two step method with
+# @param uniform_step   Flag indicating if we are applying the two step method with
 #                   only one universal epsilon
 # @param naiveObj   Flag indicating if we are using the naive objective function
 # @param debug Print optional status messages
 #
 # @return   A dictionary of the LP_variables for the bounds on timepoints.
-def originalLP(STN, super=True, two_step=False, naiveObj=True, debug=False):
-    bounds, epsilons, prob = setUp(STN, super=super, two_step=two_step)
+def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
+    bounds, epsilons, prob = setUp(STN, super=super, uniform_step=uniform_step)
 
     # Set up objective function for the LP
-    if naiveObj or (two_step and not naiveObj):
+    if naiveObj or (uniform_step and not naiveObj):
         #Obj = sum([epsilons[(i,j)] for i,j in epsilons])
-        Obj = epsilons[('eps','-')] if two_step \
+        Obj = epsilons[('eps','-')] if uniform_step \
                             else sum([epsilons[(i,j)] for i,j in epsilons])
     else:
         eps = []
@@ -188,19 +199,18 @@ def originalLP(STN, super=True, two_step=False, naiveObj=True, debug=False):
     try:
         prob.solve()
     except Exception:
-        print("The LP is infeasible")
-        return None
+        print("The model is invalid.")
+        return 'Invalid', None, None
 
-    # Report optional status message
+    # Report status message
     status = LpStatus[prob.status]
-    if debug:
-        print("Status: ", status)
+    print("Status: ", status)
 
-        for v in prob.variables():
-            print(v.name, '=', v.varValue)
+    for v in prob.variables():
+        print(v.name, '=', v.varValue)
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return None
+        return status, None, None
 
-    return bounds
+    return status, bounds, epsilons
