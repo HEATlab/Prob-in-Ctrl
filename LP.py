@@ -32,11 +32,11 @@ def addConstraint(constraint,problem):
 # \fn setUp(STN, super=True, uniform_step=False)
 # \brief Initializes the LP problem and the LP variables
 #
-# @param STN        An input STNU
-# @param super      Flag indicating if we want to solve for Superintercal
-#                   (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param uniform_step   Flag indicating if we are applying the two step method with
-#                   only one universal epsilon
+# @param STN            An input STNU        
+# @param super          Flag indicating if we want to solve for Superintercal
+#                       (strongly controllable) or Max Subinterval(weak/dynamic)
+# @param uniform_step   Flag indicating if we are applying the two step method
+#                       with only one universal epsilon
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
@@ -165,13 +165,14 @@ def setUp(STN, super=True, uniform_step=False):
 # \fn originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False)
 # \brief Runs the LP on the input STN
 #
-# @param STN        An input STNU
-# @param super      Flag indicating if we want to solve for Superintercal
-#                   (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param uniform_step   Flag indicating if we are applying the two step method with
-#                   only one universal epsilon
-# @param naiveObj   Flag indicating if we are using the naive objective function
-# @param debug Print optional status messages
+# @param STN            An input STNU
+# @param super          Flag indicating if we want to solve for Superintercal
+#                       (strongly controllable) or Max Subinterval(weak/dynamic)
+# @param uniform_step   Flag indicating if we are applying the two step method
+#                       with only one universal epsilon
+# @param naiveObj       Flag indicating if we are using the naive objective
+#                       function
+# @param debug          Print optional status messages
 #
 # @return   A dictionary of the LP_variables for the bounds on timepoints.
 def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):

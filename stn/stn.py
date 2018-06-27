@@ -694,26 +694,13 @@ class STN(object):
         for v in self.getAllVerts():
             if v.nodeID == 0:
                 continue
+
             json = v.forJSON()
-
-            if self.edgeExists(0,v.nodeID):
-                if self.getEdgeWeight(v.nodeID,0) == float('inf'):
-                    json['min_domain'] = 0
-                else:
-                    json['min_domain'] = -self.getEdgeWeight(v.nodeID,0)
-
-                if self.getEdgeWeight(0,v.nodeID) == float('inf'):
-                    json['max_domain'] = 'inf'
-                else:
-                    json['max_domain'] = self.getEdgeWeight(0,v.nodeID)
-
             jsonSTN['nodes'].append(json)
 
         # Add the edges
         jsonSTN['constraints'] = []
         for c in self.getAllEdges():
-            if c.i == 0:
-                continue
             jsonSTN['constraints'].append(c.forJSON())
 
         return jsonSTN
