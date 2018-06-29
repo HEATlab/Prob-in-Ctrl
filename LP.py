@@ -32,7 +32,7 @@ def addConstraint(constraint,problem):
 # \fn setUp(STN, super=True, uniform_step=False)
 # \brief Initializes the LP problem and the LP variables
 #
-# @param STN            An input STNU        
+# @param STN            An input STNU
 # @param super          Flag indicating if we want to solve for Superintercal
 #                       (strongly controllable) or Max Subinterval(weak/dynamic)
 # @param uniform_step   Flag indicating if we are applying the two step method
@@ -99,6 +99,9 @@ def setUp(STN, super=True, uniform_step=False):
         if not super:
             intL = [(e.Cij + e.Cji) for e in STN.contingentEdges.values()]
             upbound = min(intL) / 2
+        else:
+            lowL = [-e.Cji for e in STN.contingentEdges.values()]
+            upbound = min(lowL)
 
         epsilons[('eps','-')] = LpVariable('eps', lowBound=0, upBound=upbound)
 
@@ -150,11 +153,11 @@ def setUp(STN, super=True, uniform_step=False):
             #       the LP would be infeasible
             upbound = MAX_FLOAT if STN.getEdgeWeight(i,j) == float('inf') \
                                             else STN.getEdgeWeight(i,j)
+            lowbound = MAX_FLOAT if STN.getEdgeWeight(j,i) == float('inf') \
+                                            else STN.getEdgeWeight(j,i)
 
-            addConstraint(bounds[(j,'+')]-bounds[(i,'-')] <=
-                                            upbound, prob)
-            addConstraint(bounds[(i,'+')]-bounds[(j,'-')] <=
-                                            STN.getEdgeWeight(j,i), prob)
+            addConstraint(bounds[(j,'+')]-bounds[(i,'-')] <= upbound, prob)
+            addConstraint(bounds[(i,'+')]-bounds[(j,'-')] <= lowbound, prob)
 
     return (bounds, epsilons, prob)
 
