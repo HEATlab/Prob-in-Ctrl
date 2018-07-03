@@ -37,10 +37,12 @@ def addConstraint(constraint,problem):
 #                       (strongly controllable) or Max Subinterval(weak/dynamic)
 # @param uniform_step   Flag indicating if we are applying the two step method
 #                       with only one universal epsilon
+# @param proportion     Flag indicating whether we are setting up LP to
+#                       proportionally shrink contingent intervals
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
-def setUp(STN, super=True, uniform_step=False):
+def setUp(STN, super=True, uniform_step=False, proportion=False):
     bounds = {}
     epsilons = {}
 
@@ -85,6 +87,10 @@ def setUp(STN, super=True, uniform_step=False):
         if i == 0:
             addConstraint(bounds[(i,'-')] == 0, prob)
             addConstraint(bounds[(i,'+')] == 0, prob)
+
+
+    if proportion:
+        return (bounds, epsilons, prob)
 
 
     # If applying uniform_step method, only one epsilon is needed
@@ -165,7 +171,7 @@ def setUp(STN, super=True, uniform_step=False):
 
 
 ##
-# \fn originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False)
+# \fn originalLP(STN, super=True, uniform_step=False, naiveObj=True,debug=False)
 # \brief Runs the LP on the input STN
 #
 # @param STN            An input STNU
@@ -177,7 +183,8 @@ def setUp(STN, super=True, uniform_step=False):
 #                       function
 # @param debug          Print optional status messages
 #
-# @return   A dictionary of the LP_variables for the bounds on timepoints.
+# @return   LP status, A dictionary of the LP_variables for the bounds on
+#           timepoints and a dictionary of LP variables for epsilons
 def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
     bounds, epsilons, prob = setUp(STN, super=super, uniform_step=uniform_step)
 
@@ -218,3 +225,74 @@ def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
         return status, None, None
 
     return status, bounds, epsilons
+
+
+##
+# \fn proportionLP(STN, debug=False)
+# \brief Runs the Proportion LP on the input STN
+#
+# @param STN            An input STNU (should be weakly or dynamically
+#                       controllable)
+# @param debug          Print optional status messages
+#
+# @return   LP solving status, Lp variable delta and a dictionary of the
+#           LP_variables for epsilons
+def proportionLP(STN, debug=False):
+    # set up the constraints for every vertex
+    bounds, epsilons, prob = setUp(STN, super=False, proportion=True)
+    delta = LpVariable('delta', lowBound=0, upBound=1)
+
+    # set up constraints for every edges
+    for i,j in STN.edges:
+        if (i,j) in STN.contingentEdges:
+            epsilons[(j,'+')] = LpVariable('eps_%i_hi'%j, lowBound=0,
+                                                            upBound=None)
+            epsilons[(j,'-')] = LpVariable('eps_%i_lo'%j, lowBound=0,
+                                                            upBound=None)
+
+            addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
+                    STN.getEdgeWeight(i,j) - epsilons[(j,'+')], prob)
+            addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
+                    -STN.getEdgeWeight(j,i) + epsilons[(j,'-')], prob)
+
+            # the proportion of uncertainty removed is delta
+            e = STN.contingentEdges[(i,j)].Cij + STN.contingentEdges[(i,j)].Cji
+            addConstraint(epsilons[(j,'-')] + epsilons[(j,'+')] == \
+                                                            delta * e, prob)
+
+        else:
+            upbound = MAX_FLOAT if STN.getEdgeWeight(i,j) == float('inf') \
+                                            else STN.getEdgeWeight(i,j)
+            lowbound = MAX_FLOAT if STN.getEdgeWeight(j,i) == float('inf') \
+                                            else STN.getEdgeWeight(j,i)
+
+            addConstraint(bounds[(j,'+')]-bounds[(i,'-')] <= upbound, prob)
+            addConstraint(bounds[(i,'+')]-bounds[(j,'-')] <= lowbound, prob)
+
+    # The objective of the LP is just to minimize the value of alpha
+    Obj = delta
+    prob += Obj, "Minimize delta for the input STN"
+
+    # write LP into file for debugging (optional)
+    if debug:
+        prob.writeLP('proportion.lp')
+        LpSolverDefault.msg = 10
+
+    try:
+        prob.solve()
+    except Exception:
+        print("The model is invalid.")
+        return 'Invalid', None, None
+
+    # Report status message
+    status = LpStatus[prob.status]
+    print("Status: ", status)
+
+    for v in prob.variables():
+        print(v.name, '=', v.varValue)
+
+    if status != 'Optimal':
+        print("The solution for LP is not optimal")
+        return status, None, None
+
+    return status, delta, epsilons
