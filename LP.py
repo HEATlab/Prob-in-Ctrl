@@ -3,12 +3,15 @@ from stn import loadSTNfromJSONfile
 from pulp import *
 import math
 import json
+import glob
+import os
+import sys
 
 
 ##
 # \brief A global variable that stores the max float that will be used to deal
 #        with infinite edges.
-MAX_FLOAT = 100000000000000000
+MAX_FLOAT = sys.float_info.max
 
 
 ## \file LP.py
@@ -286,13 +289,81 @@ def proportionLP(STN, debug=False):
 
     # Report status message
     status = LpStatus[prob.status]
-    print("Status: ", status)
+    if debug:
+        print("Status: ", status)
 
-    for v in prob.variables():
-        print(v.name, '=', v.varValue)
+        for v in prob.variables():
+            print(v.name, '=', v.varValue)
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
         return status, None, None
 
     return status, delta, epsilons
+
+
+
+if __name__ == "__main__":
+
+    print("Processing Dynamically Controllable STNUs...")
+    path = '../../../examples/dynamic'
+    listOfJSONd = glob.glob(os.path.join(path, '*.json'))
+
+    result = {}
+    result['Optimal'] = {}
+    result['Invalid'] = []
+    result['Infeasible'] = []
+    result['Unbounded'] = []
+    for fname in listOfJSONd:
+        STN = loadSTNfromJSONfile(fname)
+        status, delta, epsilons = proportionLP(STN)
+
+        p, n = os.path.split(fname)
+        print("Processed: ", fname, status)
+
+        if status == 'Optimal':
+            result['Optimal'][n] = delta.varValue
+        elif status == 'Invalid':
+            result['Invalid'].append(n)
+        elif status == 'Infeasible':
+            result['Infeasible'].append(n)
+        else:
+            result['Unbounded'].append(n)
+
+    print("Finished Processing Dynamically Controllable STNUs. Writing Files..")
+    with open('result_dynamic.json', 'w') as f:
+        json.dump(result, f)
+    f.close()
+
+
+
+    print("Processing Uncertain STNUs...")
+    uncertain = '../../../examples/uncertain'
+    listOfJSONu = glob.glob(os.path.join(uncertain, '*.json'))
+
+
+    un_result = {}
+    un_result['Optimal'] = {}
+    un_result['Invalid'] = []
+    un_result['Infeasible'] = []
+    un_result['Unbounded'] = []
+    for fname in listOfJSONu:
+        STN = loadSTNfromJSONfile(fname)
+        status, delta, epsilons = proportionLP(STN)
+
+        p, n = os.path.split(fname)
+        print("Processed: ", fname, status)
+
+        if status == 'Optimal':
+            un_result['Optimal'][n] = delta.varValue
+        elif status == 'Invalid':
+            un_result['Invalid'].append(n)
+        elif status == 'Infeasible':
+            un_result['Infeasible'].append(n)
+        else:
+            un_result['Unbounded'].append(n)
+
+    print("Finished Processing Uncertain STNUs. Writing Files..")
+    with open('result_uncertain.json', 'w') as f:
+        json.dump(un_result, f)
+    f.close()
