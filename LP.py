@@ -42,15 +42,17 @@ def addConstraint(constraint,problem):
 #                       with only one universal epsilon
 # @param proportion     Flag indicating whether we are setting up LP to
 #                       proportionally shrink contingent intervals
+# @param maxmin         Flag indicating whether we are setting up LP to
+#                       maximize the min shrinked contingent intervals
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
-def setUp(STN, super=True, uniform_step=False, proportion=False):
+def setUp(STN, super=True, uniform_step=False, proportion=False, maxmin=False):
     bounds = {}
     epsilons = {}
 
     # Maximize for super and minimize for Subinterval
-    if super:
+    if super or maxmin:
         prob = LpProblem('SuperInterval LP', LpMaximize)
     else:
         prob = LpProblem('Max Subinterval LP', LpMinimize)
@@ -302,68 +304,118 @@ def proportionLP(STN, debug=False):
     return status, delta, epsilons
 
 
+##
+# \fn maxminLP(STN, debug=False)
+# \brief Runs the maximin LP on the input STN, try to maximize the min length
+#        of the shrinked contingent interval
+#
+# @param STN            An input STNU (should be weakly or dynamically
+#                       controllable)
+# @param debug          Print optional status messages
+#
+# @return   LP solving status, min contingent int length and a dictionary of the
+#           LP_variables for epsilons
+def maxminLP(STN, debug=True):
+    bounds, epsilons, prob = setUp(STN, super=False, maxmin=True)
+    z = LpVariable('z', lowBound=0, upBound=None)
 
-if __name__ == "__main__":
+    for (i,j) in STN.contingentEdges:
+        c = STN.getEdgeWeight(i,j) + STN.getEdgeWeight(j,i)
+        addConstraint(z <= c - epsilons[(j,'-')] - epsilons[(j,'+')], prob)
 
-    print("Processing Dynamically Controllable STNUs...")
-    path = '../../../examples/dynamic'
-    listOfJSONd = glob.glob(os.path.join(path, '*.json'))
+    # The objective of the LP is just to minimize the value of alpha
+    Obj = z
+    prob += Obj, "Maximize minimum contingent intervals"
 
-    result = {}
-    result['Optimal'] = {}
-    result['Invalid'] = []
-    result['Infeasible'] = []
-    result['Unbounded'] = []
-    for fname in listOfJSONd:
-        STN = loadSTNfromJSONfile(fname)
-        status, delta, epsilons = proportionLP(STN)
+    # write LP into file for debugging (optional)
+    if debug:
+        prob.writeLP('proportion.lp')
+        LpSolverDefault.msg = 10
 
-        p, n = os.path.split(fname)
-        print("Processed: ", fname, status)
+    try:
+        prob.solve()
+    except Exception:
+        print("The model is invalid.")
+        return 'Invalid', None, None
 
-        if status == 'Optimal':
-            result['Optimal'][n] = delta.varValue
-        elif status == 'Invalid':
-            result['Invalid'].append(n)
-        elif status == 'Infeasible':
-            result['Infeasible'].append(n)
-        else:
-            result['Unbounded'].append(n)
+    # Report status message
+    status = LpStatus[prob.status]
+    if debug:
+        print("Status: ", status)
 
-    print("Finished Processing Dynamically Controllable STNUs. Writing Files..")
-    with open('result_dynamic.json', 'w') as f:
-        json.dump(result, f)
-    f.close()
+        for v in prob.variables():
+            print(v.name, '=', v.varValue)
 
+    if status != 'Optimal':
+        print("The solution for LP is not optimal")
+        return status, None, None
 
-
-    print("Processing Uncertain STNUs...")
-    uncertain = '../../../examples/uncertain'
-    listOfJSONu = glob.glob(os.path.join(uncertain, '*.json'))
+    return status, z, epsilons
 
 
-    un_result = {}
-    un_result['Optimal'] = {}
-    un_result['Invalid'] = []
-    un_result['Infeasible'] = []
-    un_result['Unbounded'] = []
-    for fname in listOfJSONu:
-        STN = loadSTNfromJSONfile(fname)
-        status, delta, epsilons = proportionLP(STN)
-
-        p, n = os.path.split(fname)
-        print("Processed: ", fname, status)
-
-        if status == 'Optimal':
-            un_result['Optimal'][n] = delta.varValue
-        elif status == 'Invalid':
-            un_result['Invalid'].append(n)
-        elif status == 'Infeasible':
-            un_result['Infeasible'].append(n)
-        else:
-            un_result['Unbounded'].append(n)
-
-    print("Finished Processing Uncertain STNUs. Writing Files..")
-    with open('result_uncertain.json', 'w') as f:
-        json.dump(un_result, f)
-    f.close()
+#
+#
+# if __name__ == "__main__":
+#
+#     print("Processing Dynamically Controllable STNUs...")
+#     path = '../../../examples/dynamic'
+#     listOfJSONd = glob.glob(os.path.join(path, '*.json'))
+#
+#     result = {}
+#     result['Optimal'] = {}
+#     result['Invalid'] = []
+#     result['Infeasible'] = []
+#     result['Unbounded'] = []
+#     for fname in listOfJSONd:
+#         STN = loadSTNfromJSONfile(fname)
+#         status, delta, epsilons = proportionLP(STN)
+#
+#         p, n = os.path.split(fname)
+#         print("Processed: ", fname, status)
+#
+#         if status == 'Optimal':
+#             result['Optimal'][n] = delta.varValue
+#         elif status == 'Invalid':
+#             result['Invalid'].append(n)
+#         elif status == 'Infeasible':
+#             result['Infeasible'].append(n)
+#         else:
+#             result['Unbounded'].append(n)
+#
+#     print("Finished Processing Dynamically Controllable STNUs. Writing Files..")
+#     with open('result_dynamic.json', 'w') as f:
+#         json.dump(result, f)
+#     f.close()
+#
+#
+#
+#     print("Processing Uncertain STNUs...")
+#     uncertain = '../../../examples/uncertain'
+#     listOfJSONu = glob.glob(os.path.join(uncertain, '*.json'))
+#
+#
+#     un_result = {}
+#     un_result['Optimal'] = {}
+#     un_result['Invalid'] = []
+#     un_result['Infeasible'] = []
+#     un_result['Unbounded'] = []
+#     for fname in listOfJSONu:
+#         STN = loadSTNfromJSONfile(fname)
+#         status, delta, epsilons = proportionLP(STN)
+#
+#         p, n = os.path.split(fname)
+#         print("Processed: ", fname, status)
+#
+#         if status == 'Optimal':
+#             un_result['Optimal'][n] = delta.varValue
+#         elif status == 'Invalid':
+#             un_result['Invalid'].append(n)
+#         elif status == 'Infeasible':
+#             un_result['Infeasible'].append(n)
+#         else:
+#             un_result['Unbounded'].append(n)
+#
+#     print("Finished Processing Uncertain STNUs. Writing Files..")
+#     with open('result_uncertain.json', 'w') as f:
+#         json.dump(un_result, f)
+#     f.close()

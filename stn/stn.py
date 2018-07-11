@@ -774,6 +774,8 @@ class STN(object):
     #
     # @return Returns True if STNU is strongly controllable, and False otherwise
     #         If returnSTN is True, then also return the reduced STN
+    #
+    # NOTE: This function is not reliable!!
     def isStronglyControllable(self, debug=False, returnSTN = False):
 
         if not self.isConsistent():
