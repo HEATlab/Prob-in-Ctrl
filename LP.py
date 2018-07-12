@@ -329,7 +329,7 @@ def maxminLP(STN, debug=True):
 
     # write LP into file for debugging (optional)
     if debug:
-        prob.writeLP('proportion.lp')
+        prob.writeLP('maxmin.lp')
         LpSolverDefault.msg = 10
 
     try:
@@ -353,69 +353,51 @@ def maxminLP(STN, debug=True):
     return status, z, epsilons
 
 
+
+
+##
+# \fn minmaxLP(STN, debug=False)
+# \brief Runs the minmax LP on the input STN, try to minimize the max
+#        amount of uncertainty removed from contingent intervals
 #
+# @param STN            An input STNU (should be weakly or dynamically
+#                       controllable)
+# @param debug          Print optional status messages
 #
-# if __name__ == "__main__":
-#
-#     print("Processing Dynamically Controllable STNUs...")
-#     path = '../../../examples/dynamic'
-#     listOfJSONd = glob.glob(os.path.join(path, '*.json'))
-#
-#     result = {}
-#     result['Optimal'] = {}
-#     result['Invalid'] = []
-#     result['Infeasible'] = []
-#     result['Unbounded'] = []
-#     for fname in listOfJSONd:
-#         STN = loadSTNfromJSONfile(fname)
-#         status, delta, epsilons = proportionLP(STN)
-#
-#         p, n = os.path.split(fname)
-#         print("Processed: ", fname, status)
-#
-#         if status == 'Optimal':
-#             result['Optimal'][n] = delta.varValue
-#         elif status == 'Invalid':
-#             result['Invalid'].append(n)
-#         elif status == 'Infeasible':
-#             result['Infeasible'].append(n)
-#         else:
-#             result['Unbounded'].append(n)
-#
-#     print("Finished Processing Dynamically Controllable STNUs. Writing Files..")
-#     with open('result_dynamic.json', 'w') as f:
-#         json.dump(result, f)
-#     f.close()
-#
-#
-#
-#     print("Processing Uncertain STNUs...")
-#     uncertain = '../../../examples/uncertain'
-#     listOfJSONu = glob.glob(os.path.join(uncertain, '*.json'))
-#
-#
-#     un_result = {}
-#     un_result['Optimal'] = {}
-#     un_result['Invalid'] = []
-#     un_result['Infeasible'] = []
-#     un_result['Unbounded'] = []
-#     for fname in listOfJSONu:
-#         STN = loadSTNfromJSONfile(fname)
-#         status, delta, epsilons = proportionLP(STN)
-#
-#         p, n = os.path.split(fname)
-#         print("Processed: ", fname, status)
-#
-#         if status == 'Optimal':
-#             un_result['Optimal'][n] = delta.varValue
-#         elif status == 'Invalid':
-#             un_result['Invalid'].append(n)
-#         elif status == 'Infeasible':
-#             un_result['Infeasible'].append(n)
-#         else:
-#             un_result['Unbounded'].append(n)
-#
-#     print("Finished Processing Uncertain STNUs. Writing Files..")
-#     with open('result_uncertain.json', 'w') as f:
-#         json.dump(un_result, f)
-#     f.close()
+# @return   LP solving status, max amount of uncertainty removed from contingent
+#           intervals and a dictionary of the LP_variables for epsilons
+def minmaxLP(STN, debug=True):
+    bounds, epsilons, prob = setUp(STN, super=False)
+    z = LpVariable('z', lowBound=0, upBound=None)
+
+    for (i,j) in STN.contingentEdges:
+        addConstraint(z >= epsilons[(j,'-')] + epsilons[(j,'+')], prob)
+
+    # The objective of the LP is just to minimize the value of alpha
+    Obj = z
+    prob += Obj, "Minimize the maximum of uncertainty removed"
+
+    # write LP into file for debugging (optional)
+    if debug:
+        prob.writeLP('minmax.lp')
+        LpSolverDefault.msg = 10
+
+    try:
+        prob.solve()
+    except Exception:
+        print("The model is invalid.")
+        return 'Invalid', None, None
+
+    # Report status message
+    status = LpStatus[prob.status]
+    if debug:
+        print("Status: ", status)
+
+        for v in prob.variables():
+            print(v.name, '=', v.varValue)
+
+    if status != 'Optimal':
+        print("The solution for LP is not optimal")
+        return status, None, None
+
+    return status, z, epsilons
