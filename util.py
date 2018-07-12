@@ -55,7 +55,20 @@ def dc_checking_file(filename):
 
 
 
-
+##
+# \fn generateChain(task, free)
+# \brief generate a consistent STNUs in a chainlike structure
+#
+# \details The chainlike STNU is very common in real life application, such as
+#          AUV need to drive to different sites and complete task at each site.
+#          Driving to different cite is contingent, but the agent can decide
+#          how long it takes to complete the task.
+#
+# @param task  The number of tasks need to be completed
+# @param free  The total length of the free constraint intervals we want
+#              in the generated STNU
+#
+# @return Return the generated STNU
 def generateChain(task, free):
     totalEvent = 2 * (task+1)
 
