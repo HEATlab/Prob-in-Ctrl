@@ -36,7 +36,7 @@ def addConstraint(constraint,problem):
 # \brief Initializes the LP problem and the LP variables
 #
 # @param STN            An input STNU
-# @param super          Flag indicating if we want to solve for Superintercal
+# @param super          Flag indicating if we want to solve for Superinterval
 #                       (strongly controllable) or Max Subinterval(weak/dynamic)
 # @param uniform_step   Flag indicating if we are applying the two step method
 #                       with only one universal epsilon
@@ -180,7 +180,7 @@ def setUp(STN, super=True, uniform_step=False, proportion=False, maxmin=False):
 # \brief Runs the LP on the input STN
 #
 # @param STN            An input STNU
-# @param super          Flag indicating if we want to solve for Superintercal
+# @param super          Flag indicating if we want to solve for Superinterval
 #                       (strongly controllable) or Max Subinterval(weak/dynamic)
 # @param uniform_step   Flag indicating if we are applying the two step method
 #                       with only one universal epsilon
