@@ -374,3 +374,47 @@ class DC_STN(object):
                                                                   uc_edge.j,uc_edge.i,uc_edge.j,
                                                                   uc_edge.weight))
         return num_reductions
+
+
+
+
+
+    # -------------------------------------------------------------------------
+    # New functions
+    # -------------------------------------------------------------------------
+
+    ##
+    # \fn incomingEdges(self, start)
+    # \brief Get all incoming edges for a given vertex
+    #
+    # @param start    nodeID for the vertex we want to get the incoming edges
+    #
+    # @return A list of DC Edges object that are incoming edges for start
+    def incomingEdges(self, start):
+        vertex = self.verts[start]
+
+        result = []
+        result += vertex.incoming_lower
+        result += vertex.incoming_upper
+        result += vertex.incoming_normal
+
+        return result
+
+
+
+    ##
+    # \fn getNegNodes(self)
+    # \brief Get the set of all vertices with incoming negative edges
+    #
+    # @return A list of nodeID with incoming negative edges
+    def getNegNodes(self):
+        negNodes = []
+        for v in list(self.verts.keys()):
+            incoming = self.incomingEdges(v)
+
+            for edge in incoming:
+                if edge.weight < 0:
+                    negNodes.append(v)
+                    break
+
+        return negNodes

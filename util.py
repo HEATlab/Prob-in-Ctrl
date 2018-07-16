@@ -2,6 +2,7 @@ from stn import STN
 from stn import loadSTNfromJSONfile
 from dc_stn import DC_STN, edgeType
 import random
+import heapq
 
 ##
 # \file util.py
@@ -155,3 +156,68 @@ def normal(STN):
                 new.addEdge(e.j, e.i, -e.Cij, edge_type=edgeType.UPPER,
                                                                 parent=e.j)
     return new, changed
+
+
+
+##
+# \class PriorityQueue
+# \brief A simple Priority Queue implementation that pop the item with the
+#        lowest priority
+class PriorityQueue:
+
+    ##
+    # \brief PriorityQueue Constructor
+    def  __init__(self):
+        self.queue = []
+
+    ##
+    # \brief Push an element with given priority into the Priority queue
+    #
+    # @param data         An element to be added
+    # @param priority     The priority associated with input data
+    #
+    # @post A Priority Queue object with input data added
+    def push(self, data, priority):
+        heapq.heappush(self.queue, (priority, data))
+
+
+    ##
+    # \brief Pop the element with the lowest priority in Priority Queue
+    #
+    # @return A tuple in the form of (priority, data)
+    def pop(self):
+        return heapq.heappop(self.queue)
+
+
+    ##
+    # \brief Check if the Priority Queue has element inside
+    #
+    # @return Return True if the queue is empty and return False otherwise
+    def isEmpty(self):
+        return len(self.queue) == 0
+
+
+    ##
+    # \brief Add or decrease the priority of an input data
+    #
+    # \detail If input data is already in the queue, modify its priority if the
+    #         input priority is strictly lower than its original priority,
+    #         do nothing otherwise. If input data is not in the queue, push it
+    #         to the queue with given priority.
+    #
+    # @param data         An element to be added/modified
+    # @param priority     The priority associated with input data
+    #
+    # @post A Priority Queue object with input data added/modified
+    def addOrDecKey(self, data, priority):
+
+        for i, (p, d) in enumerate(self.queue):
+            if d == data:
+                if priority >= p:
+                    break
+
+                del self.queue[i]
+                self.push(data, priority)
+                break
+        else:
+            self.push(data, priority)
