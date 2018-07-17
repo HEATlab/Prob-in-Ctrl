@@ -26,13 +26,14 @@ from util import *
 #         vertex v to s
 def extractEdgePath(s, v, labelDist, unlabelDist):
     result = []
-
+    print(labelDist, unlabelDist)
     while True:
         distArray = labelDist if v in labelDist else unlabelDist
         weight, edge = distArray[v]
         result.append(edge)
         v = edge.j
 
+        print("hello", v, s)
         if edge.j == s:
             break
 
@@ -115,10 +116,11 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     labelDist[start] = (0, None)
     unlabelDist[start] = (0, None)
 
+    print(start)
     for edge in G.incomingEdges(start):
         if edge.weight < 0:
-            Q.push((edge.i, edge.type), edge.weight)
-            if edge.type == edgeType.NORMAL:
+            Q.push((edge.i, edge.type, edge.parent), edge.weight)
+            if edge.parent == None:
                 unlabelDist[edge.i] = (edge.weight, edge)
             else:
                 labelDist[edge.i] = (edge.weight, edge)
@@ -126,11 +128,11 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     if start in callStack[:-1]:
         return False, [], start
 
-
     preds[start] = (labelDist, unlabelDist)
 
     while not Q.isEmpty():
-        weight, (v, label) = Q.pop()
+        weight, (v, type, label) = Q.pop()
+
         if weight >= 0:
             G.addEdge(v, start, weight)
             novel.append((v, start, weight))
@@ -149,16 +151,14 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
         for edge in G.incomingEdges(v):
             if edge.weight >= 0 and (edge.type != edgeType.LOWER or \
-                                                    edge.type != label):
+                                                    edge.parent != label):
                 w = edge.weight + weight
-                distArray = labelDist if label != edgeType.NORMAL \
-                                                    else unlabelDist
+                distArray = labelDist if not label else unlabelDist
 
                 if edge.i not in distArray or w < distArray[edge.i][0]:
                     distArray[edge.i] = (w, edge)
-                    Q.addOrDecKey((edge.i, label), w)
+                    Q.addOrDecKey((edge.i, type, label), w)
 
-    print("Hi")
     negNodes.remove(start)
     return True, [], None
 
@@ -178,7 +178,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 #         return False and conflicts.
 def DC_Checker(STN):
     G, D = normal(STN)
-    print(D)
     negNodes = G.getNegNodes()
     novel = []
     preds = {}
