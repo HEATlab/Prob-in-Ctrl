@@ -134,7 +134,7 @@ def normal(STN):
         else:
             if e.Cji != 0:
                 new_vert = len(new.verts)
-                changed[new_vert] = (e.i, e.j, -e.Cji, e.Cij)
+                changed[new_vert] = e
                 new.addVertex(new_vert)
 
 
