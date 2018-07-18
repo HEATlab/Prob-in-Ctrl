@@ -220,14 +220,15 @@ def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
 
     # Report status message
     status = LpStatus[prob.status]
-    print("Status: ", status)
+    if debug:
+        print("Status: ", status)
 
-    for v in prob.variables():
-        print(v.name, '=', v.varValue)
+        for v in prob.variables():
+            print(v.name, '=', v.varValue)
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return status, None, None
+        return status, None
 
     return status, bounds, epsilons
 
@@ -301,7 +302,7 @@ def proportionLP(STN, debug=False):
         print("The solution for LP is not optimal")
         return status, None, None
 
-    return status, delta, epsilons
+    return status, delta, bounds, epsilons
 
 
 ##
@@ -350,7 +351,7 @@ def maxminLP(STN, debug=True):
         print("The solution for LP is not optimal")
         return status, None, None
 
-    return status, z, epsilons
+    return status, z, bounds, epsilons
 
 
 
@@ -400,4 +401,4 @@ def minmaxLP(STN, debug=True):
         print("The solution for LP is not optimal")
         return status, None, None
 
-    return status, z, epsilons
+    return status, z, bounds, epsilons
