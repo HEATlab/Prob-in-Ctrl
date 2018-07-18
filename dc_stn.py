@@ -39,6 +39,10 @@ class DC_Edge:
         self.parent = parent
         self.fake = fake
 
+    def __repr__(self):
+        s = ""
+        return "Edge {} => {}, {}, Type: {}, Label: {}".format(self.i, self.j,
+                            self.weight, self.type, self.parent)
 ## \class DC_STN
 #  \brief an implementation of an STN for determining dynamic controllability.
 class DC_STN(object):

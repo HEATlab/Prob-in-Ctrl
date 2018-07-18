@@ -26,18 +26,18 @@ from util import *
 #         vertex v to s
 def extractEdgePath(s, v, labelDist, unlabelDist):
     result = []
-    print(labelDist, unlabelDist)
-    while True:
-        distArray = labelDist if v in labelDist else unlabelDist
-        weight, edge = distArray[v]
-        result.append(edge)
-        v = edge.j
+    # print(labelDist, unlabelDist)
+    # while True:
+    #     distArray = labelDist if v in labelDist else unlabelDist
+    #     weight, edge = distArray[v]
+    #     result.append(edge)
+    #     v = edge.j
+    #
+    #     print("hello", v, s)
+    #     if edge.j == s:
+    #         break
 
-        print("hello", v, s)
-        if edge.j == s:
-            break
-
-    return result
+    return (labelDist, unlabelDist)
 
 
 
@@ -115,18 +115,28 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     unlabelDist = {}
     labelDist[start] = (0, None)
     unlabelDist[start] = (0, None)
+    #
+    # print(start)
 
-    print(start)
     for edge in G.incomingEdges(start):
-        if edge.weight < 0:
-            Q.push((edge.i, edge.type, edge.parent), edge.weight)
-            if edge.parent == None:
-                unlabelDist[edge.i] = (edge.weight, edge)
-            else:
-                labelDist[edge.i] = (edge.weight, edge)
+        # if edge.weight < 0:
+        #     Q.push((edge.i, edge.type, edge.parent), edge.weight)
+        #     if edge.parent == None:
+        #         unlabelDist[edge.i] = (edge.weight, edge)
+        #     else:
+        #         labelDist[edge.i] = (edge.weight, edge)
+
+        Q.push((edge.i, edge.type, edge.parent), edge.weight)
+        if not edge.parent:
+            unlabelDist[edge.i] = (edge.weight, edge)
+        else:
+            labelDist[edge.i] = (edge.weight, edge)
 
     if start in callStack[:-1]:
-        return False, [], start
+        # return False, [], start
+        #
+        # print("Fails here: ", callStack)
+        return False
 
     preds[start] = (labelDist, unlabelDist)
 
@@ -140,27 +150,32 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
         if v in negNodes:
             callStack.append(v)
-            result, edges, end = DCDijkstra(G, v, preds, novel, callStack, negNodes)
+            # result, edges, end = DCDijkstra(G, v, preds, novel, callStack, negNodes)
+            result = DCDijkstra(G, v, preds, novel, callStack, negNodes)
 
             if not result:
-                if end != None:
-                    edges += extractEdgePath(start, v, labelDist, unlabelDist)
-                if end == start:
-                    end = None
-                return False, edges, end
+                # if end != None:
+                #     edges += extractEdgePath(start, v, labelDist, unlabelDist)
+                # if end == start:
+                #     end = None
+                # return False, edges, end
+
+                # print("FAIL!!!")
+                return False
 
         for edge in G.incomingEdges(v):
             if edge.weight >= 0 and (edge.type != edgeType.LOWER or \
                                                     edge.parent != label):
                 w = edge.weight + weight
-                distArray = labelDist if not label else unlabelDist
+                distArray = unlabelDist if not label else labelDist
 
                 if edge.i not in distArray or w < distArray[edge.i][0]:
                     distArray[edge.i] = (w, edge)
                     Q.addOrDecKey((edge.i, type, label), w)
 
     negNodes.remove(start)
-    return True, [], None
+    # return True, [], None
+    return True
 
 
 
@@ -183,9 +198,77 @@ def DC_Checker(STN):
     preds = {}
 
     for v in negNodes:
-        result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes)
-
+        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes)
+        #print("Node: ", v)
+        result = DCDijkstra(G, v, preds, novel, [v], negNodes)
         if not result:
-            return False, extractConflict(STN, edges, D)
+            #return False, extractConflict(STN, edges, D)
+            return False
 
-    return True, []
+    #return True, []
+    return True
+
+
+
+def DC(G, start, callStack, negNodes):
+
+    if start in callStack[:-1]:
+        return False
+
+    Q = PriorityQueue()
+    distance = {}
+    distance[start] = 0
+
+    for v in list(G.verts.keys()):
+        if v != start:
+            distance[v] = float('Inf')
+
+    for edge in G.incomingEdges(start):
+        distance[edge.i] = edge.weight
+        Q.push(edge.i, edge.weight)
+
+    while not Q.isEmpty():
+        weight, v = Q.pop()
+
+        if distance[v] >= 0:
+            G.addEdge(v, start, distance[v])
+            continue
+
+        if v in negNodes:
+            callStack.append(v)
+            result = DC(G, v, callStack, negNodes)
+
+            if not result:
+                return False
+
+        for edge in G.incomingEdges(v):
+            if edge.weight < 0:
+                continue
+
+            if edge.type == edgeType.LOWER and edge.parent == v:
+                continue
+
+            w = edge.weight + weight
+            if w < distance[edge.i]:
+                distance[edge.i] = w
+                Q.addOrDecKey(edge.i, w)
+
+    return True
+
+
+def testDC(STN):
+    G, D = normal(STN)
+    negNodes = G.getNegNodes()
+
+    for v in negNodes:
+        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes)
+        result = DC(G, v, [v], negNodes)
+        if not result:
+            return False
+
+    return True
+
+
+
+
+# Dynamic 3,4,
