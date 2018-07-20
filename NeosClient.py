@@ -127,8 +127,8 @@ def main():
         p, f = os.path.split(fname)
 
         print('hi')
-        time.sleep(60)
-        print('One minute passed...\n')
+        time.sleep(30)
+        print('Half a minute passed...\n')
 
         if obj == 'killed':
             result['killed'].append(f)

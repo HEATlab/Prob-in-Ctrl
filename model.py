@@ -77,13 +77,9 @@ def prepare(STN):
 
     Obj = ''
     for i in STN.uncontrollables:
-        Obj += '(' + bounds[(i, '+')][0] + ' - ' + bounds[(i, '-')][0] \
-                                                                        + ') * '
+        Obj += 'log(' + bounds[(i, '+')][0] + ' - ' + bounds[(i, '-')][0] \
+                                                                        + ') + '
     Obj = Obj[:-3]
-
-    num = len(STN.contingentEdges)
-    if num >= 20:    
-        Obj += ' / (10^' + str(num) + ')'
 
     return bounds, epsilons, constraints, Obj
 
