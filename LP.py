@@ -85,13 +85,16 @@ def setUp(STN, super=True, uniform_step=False, proportion=False, maxmin=False):
         lowbound = 0 if STN.getEdgeWeight(i,0) == float('inf') else\
                             -STN.getEdgeWeight(i,0)
         bounds[(i,'-')] = LpVariable('t_%i_lo'%i, lowBound=lowbound,
-                                                            upBound=None)
+                                            upBound=None)
 
         addConstraint( bounds[(i,'-')] <= bounds[(i,'+')], prob)
 
         if i == 0:
             addConstraint(bounds[(i,'-')] == 0, prob)
             addConstraint(bounds[(i,'+')] == 0, prob)
+
+        if i not in STN.uncontrollables:
+            addConstraint( bounds[(i,'-')] == bounds[(i,'+')], prob)
 
 
     if proportion:
@@ -228,7 +231,7 @@ def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return status, None
+        return status, None, None
 
     return status, bounds, epsilons
 
@@ -288,7 +291,7 @@ def proportionLP(STN, debug=False):
         prob.solve()
     except Exception:
         print("The model is invalid.")
-        return 'Invalid', None, None
+        return 'Invalid', None, None, None
 
     # Report status message
     status = LpStatus[prob.status]
@@ -300,7 +303,7 @@ def proportionLP(STN, debug=False):
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return status, None, None
+        return status, None, None, None
 
     return status, delta, bounds, epsilons
 
@@ -337,7 +340,7 @@ def maxminLP(STN, debug=True):
         prob.solve()
     except Exception:
         print("The model is invalid.")
-        return 'Invalid', None, None
+        return 'Invalid', None, None, None
 
     # Report status message
     status = LpStatus[prob.status]
@@ -349,7 +352,7 @@ def maxminLP(STN, debug=True):
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return status, None, None
+        return status, None, None, None
 
     return status, z, bounds, epsilons
 
@@ -387,7 +390,7 @@ def minmaxLP(STN, debug=True):
         prob.solve()
     except Exception:
         print("The model is invalid.")
-        return 'Invalid', None, None
+        return 'Invalid', None, None, None
 
     # Report status message
     status = LpStatus[prob.status]
@@ -399,6 +402,6 @@ def minmaxLP(STN, debug=True):
 
     if status != 'Optimal':
         print("The solution for LP is not optimal")
-        return status, None, None
+        return status, None, None, None
 
     return status, z, bounds, epsilons

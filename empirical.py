@@ -89,6 +89,7 @@ def sampleOnce(original, shrinked):
 # @return              True/False if the schedule is valid/invalid.
 def scheduleIsValid(network: STN, schedule: dict) -> STN:
     # Check that the schedule is actually defined on all relevant vertices
+    epsilon = 0.001
     vertices = network.getAllVerts()
     for vertex in vertices:
         vertexID = vertex.nodeID
@@ -101,10 +102,10 @@ def scheduleIsValid(network: STN, schedule: dict) -> STN:
         start = edge.i
         fin   = edge.j
         uBound = edge.Cij
-        lBound = edge.Cji
+        lBound = -edge.Cji
 
-        boundedAbove = (schedule[fin] - schedule[start]) <= uBound
-        boundedBelow = (schedule[start] - schedule[fin]) <= lBound
+        boundedAbove = (schedule[fin] - schedule[start]) <= uBound + epsilon
+        boundedBelow = (schedule[fin] - schedule[start]) >= lBound - epsilon
 
         # Check if constraint is not satisfied
         if ((not boundedAbove) or (not boundedBelow)):
@@ -146,9 +147,6 @@ def altSampleOnce(STN, schedule):
 
 
 
-
-
-
 ##
 # \fn sample(STN, LP='original')
 # \brief Compute the success rate of an STNU by randomly sample 50000 times
@@ -162,7 +160,7 @@ def altSampleOnce(STN, schedule):
 # @return The degree of controllability and the success rate for input STN
 def sample(STN, success='default', LP='original'):
     if LP == 'original':
-        _, bounds, epsilons = originalLP(STN.copy(), super=False)
+        _, bounds, epsilons = originalLP(STN.copy(), super=False, naiveObj = False)
     elif LP == 'proportion':
         _, _, bounds, epsilons = proportionLP(STN.copy())
     else:
@@ -174,17 +172,17 @@ def sample(STN, success='default', LP='original'):
     schedule = {}
     for i in list(STN.verts.keys()):
         if i not in STN.uncontrollables:
-            time = bounds[(i, '-')].varValue
+            time = (bounds[(i, '-')].varValue + bounds[(i, '+')].varValue)/2
             schedule[i] = time
 
     count = 0
-    for i in range(10000):
+    for i in range(1000):
         result = sampleOnce(original, shrinked) if success == 'default' \
-                                else altSampleOnce(STN, schedule)
+                                else altSampleOnce(STN, schedule.copy())
         if result:
             count += 1
 
-    success = float(count/10000)
+    success = float(count/1000)
 
     return degree, success
 
@@ -198,19 +196,40 @@ def sample(STN, success='default', LP='original'):
 #
 # @return a list of (degree, success) tuple for STNUs in the list
 def sampleAll(listOfFile, success='default', LP='original'):
-    result = []
+    result = {}
+    weird = {}
     for fname in listOfFile:
         p, f = os.path.split(fname)
         print("Processing file: ", f)
         STN = loadSTNfromJSONfile(fname)
         degree, success = sample(STN, success=success, LP=LP)
-        result.append((degree, success))
-    return result
+        result[f] = (degree, success)
+
+        if degree - success >= 0.1:
+            weird[f] = (degree, success)
+
+    return result, weird
 
 
 
-if __name__ == '__main__':
-    listOfFile = []
-    listOfFile += glob.glob(os.path.join('../../../examples/dynamic/', '*.json'))
-    #listOfFile += glob.glob(os.path.join('../../../examples/uncertain/', '*.json'))
-    #listOfFile += glob.glob(os.path.join('../../../examples/chain/', '*.json'))
+# if __name__ == '__main__':
+#     listOfFile = []
+#     listOfFile += glob.glob(os.path.join('../../../examples/dynamic/', '*.json'))
+#     listOfFile += glob.glob(os.path.join('../../../examples/uncertain/', '*.json'))
+#     listOfFile += glob.glob(os.path.join('../../../examples/chain/', '*.json'))
+#
+#     print("Testing with Original LP...\n")
+#     resultD_1, weird1 = sampleAll(listOfFile, success='new')
+#     result_1 = list(resultD_1.values())
+#     x_1 = [d[0] for d in result_1]
+#     y_1 = [d[1] for d in result_1]
+#     plt.plot(x_1, y_1, 'o')
+#     plt.xlim(-0.04, 1.04)
+#     plt.ylim(-0.04, 1.04)
+#     plt.xlabel("Degree of strong controllability")
+#     plt.ylabel("Success rate")
+#     plt.title("Original LP")
+#
+#     fname = os.path.join('../../../', 'original_obj.png')
+#     plt.savefig(fname, format='png')
+#     plt.close()
