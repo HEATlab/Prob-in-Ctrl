@@ -117,13 +117,15 @@ def getObjValue(xml_name, username=None, user_password=None, output=False):
 def main():
     xml_folder = input("Please input directory for xml files:\n")
     xml_L = glob.glob(os.path.join(xml_folder, '*.xml'))
+    username = input("Please input Neos username")
+    password = input("Please input Neos password")
 
     result = {}
     result['normal'] = {}
     result['unbounded'] = []
     result['killed'] = []
     for fname in xml_L:
-        obj = getObjValue(fname, 'maggieli', 'Lhm960819!', True)
+        obj = getObjValue(fname, username, password, True)
         p, f = os.path.split(fname)
 
         print('hi')
