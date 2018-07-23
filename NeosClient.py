@@ -54,7 +54,7 @@ except ImportError:
 # @param output         Flag indicating whether we want to report final result
 #
 # @return if output, return the objective value from the final result
-def getObjValue(xml_name, username=None, user_password=None, output=False):
+def getObjValue(xml_name, outfolder, username=None, user_password=None, output=False):
     neos = xmlrpclib.ServerProxy("https://neos-server.org:3333")
 
     alive = neos.ping()
@@ -83,6 +83,12 @@ def getObjValue(xml_name, username=None, user_password=None, output=False):
            (jobNumber, password) = neos.submitJob(xml)
 
        start = time.time()
+
+       p, f = os.path.split(xml_name)
+       fname = os.path.join(outfolder, f[:-4] + '.txt')
+       file = open(fname, 'w')
+       file.write("Job number = %d\nJob password = %s\n" % (jobNumber, password))
+
        sys.stdout.write("Job number = %d\nJob password = %s\n" % (jobNumber, password))
        if jobNumber == 0:
            sys.stderr.write("NEOS Server error: %s\n" % password)
@@ -92,10 +98,11 @@ def getObjValue(xml_name, username=None, user_password=None, output=False):
            status = ""
            while status != "Done":
                end = time.time()
-               if end-start >= 50:
-                   neos.killJob(jobNumber, password)
-                   print("Job is killed!")
-                   return 'killed'
+               if end-start >= 70:
+                   file.write('\nJob still processing...\n')
+                   file.close()
+                   print("Job hasn't finished processing yet...")
+                   return 'waiting'
 
                time.sleep(1)
                status = neos.getJobStatus(jobNumber, password)
@@ -106,44 +113,54 @@ def getObjValue(xml_name, username=None, user_password=None, output=False):
            objective_pattern = re.compile("\nObjective ([\+0-9.e-]+)\n")
 
            if output:
-               print(objective_pattern.findall(decoded_msg))
-               if len(objective_pattern.findall(decoded_msg)) == 0:
+               out = objective_pattern.findall(decoded_msg)
+               print(out)
+               if len(out) == 0:
+                   file.write("\nPossibly unbounded...\n")
+                   file.close()
                    return None
-               return float(objective_pattern.findall(decoded_msg)[0])
+
+               file.write("Objective Value: {}".format(float(out[0])))
+               file.close()
+               return float(out[0])
            else:
                sys.stdout.write(decoded_msg)
 
-
-def main():
-    xml_folder = input("Please input directory for xml files:\n")
-    xml_L = glob.glob(os.path.join(xml_folder, '*.xml'))
-    username = input("Please input Neos username")
-    password = input("Please input Neos password")
-
-    result = {}
-    result['normal'] = {}
-    result['unbounded'] = []
-    result['killed'] = []
-    for fname in xml_L:
-        obj = getObjValue(fname, username, password, True)
-        p, f = os.path.split(fname)
-
-        print('hi')
-        time.sleep(30)
-        print('Half a minute passed...\n')
-
-        if obj == 'killed':
-            result['killed'].append(f)
-        elif not obj:
-            result['unbounded'].append(f)
-        else:
-            f = f[:-4]
-            result['normal'][f] = obj
-
-
-    with open('result.json', 'w') as f:
-        json.dump(result, f)
-
-
-if __name__ == '__main__':
-    main()
+#
+# def main():
+#     xml_folder = input("Please input directory for xml files:\n")
+#     xml_L = glob.glob(os.path.join(xml_folder, '*.xml'))
+#     username = input("Please input Neos username:\n")
+#     password = input("Please input Neos password:\n")
+#     outfolder = input("Please enter output folder for job file:\n")
+#
+#     result = {}
+#     result['normal'] = {}
+#     result['unbounded'] = []
+#     result['killed'] = []
+#     result['waiting'] = []
+#     for fname in xml_L:
+#         p, f = os.path.split(fname)
+#         print("Processing: ", f)
+#         obj = getObjValue(fname, outfolder, username, password, True)
+#
+#
+#         print('hi')
+#         time.sleep(90)
+#         print('One and a half minutes passed...\n')
+#
+#         if obj == 'waiting':
+#             result['waiting'].append(f)
+#         elif not obj:
+#             result['unbounded'].append(f)
+#         else:
+#             f = f[:-4]
+#             result['normal'][f] = obj
+#
+#
+#     with open('result.json', 'w') as f:
+#         json.dump(result, f)
+#
+#
+# if __name__ == '__main__':
+#     main()
