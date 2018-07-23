@@ -1,11 +1,12 @@
 from stn import STN
 from stn import loadSTNfromJSONfile
 from LP import *
+import matplotlib.pyplot as plt
 import glob
 import json
 import os
 import random
-import matplotlib.pyplot as plt
+import math
 
 ##
 # \file empirical.py
@@ -53,29 +54,9 @@ def calculateMetric(original, shrinked):
         a, b = shrinked[i]
         new *= (b-a)
 
-    return float(new/orig)
+    return orig, new, float(new/orig)
 
-##
-# \fn sampleOnce(original, shrinked)
-# \brief Check whether a randomly generated realization is inside strong
-#        controllable region
-#
-# @param original       A list of original contingent intervals
-# @param shrinked       A list of shrinked contingent intervals
-#
-# @return Return True if the random realization falls into the strongly
-#         controllable region. Return False otherwise
-def sampleOnce(original, shrinked):
-    for i in range(len(original)):
-        x,y = original[i]
-        a,b = shrinked[i]
 
-        real = random.uniform(x, y)
-        #print(original[i], shrinked[i], real)
-        if real < a or real > b:
-            return False
-
-    return True
 
 ##
 # \fn scheduleIsValid(network, schedule)
@@ -112,6 +93,34 @@ def scheduleIsValid(network: STN, schedule: dict) -> STN:
             return False
 
     return True
+
+
+# -------------------------------------------------------------------------
+#  Sample to get success rate
+# -------------------------------------------------------------------------
+
+##
+# \fn sampleOnce(original, shrinked)
+# \brief Check whether a randomly generated realization is inside strong
+#        controllable region
+#
+# @param original       A list of original contingent intervals
+# @param shrinked       A list of shrinked contingent intervals
+#
+# @return Return True if the random realization falls into the strongly
+#         controllable region. Return False otherwise
+def sampleOnce(original, shrinked):
+    for i in range(len(original)):
+        x,y = original[i]
+        a,b = shrinked[i]
+
+        real = random.uniform(x, y)
+        #print(original[i], shrinked[i], real)
+        if real < a or real > b:
+            return False
+
+    return True
+
 
 
 ##
@@ -160,14 +169,14 @@ def altSampleOnce(STN, schedule):
 # @return The degree of controllability and the success rate for input STN
 def sample(STN, success='default', LP='original'):
     if LP == 'original':
-        _, bounds, epsilons = originalLP(STN.copy(), super=False, naiveObj = False)
+        _, bounds, epsilons = originalLP(STN.copy(), super=False, naiveObj=False)
     elif LP == 'proportion':
         _, _, bounds, epsilons = proportionLP(STN.copy())
     else:
         _, _, bounds, epsilons = maxminLP(STN.copy())
 
     original, shrinked = newInterval(STN, epsilons)
-    degree = calculateMetric(original, shrinked)
+    degree = calculateMetric(original, shrinked)[2]
 
     schedule = {}
     for i in list(STN.verts.keys()):
@@ -176,13 +185,13 @@ def sample(STN, success='default', LP='original'):
             schedule[i] = time
 
     count = 0
-    for i in range(1000):
+    for i in range(50000):
         result = sampleOnce(original, shrinked) if success == 'default' \
                                 else altSampleOnce(STN, schedule.copy())
         if result:
             count += 1
 
-    success = float(count/1000)
+    success = float(count/50000)
 
     return degree, success
 
@@ -197,7 +206,6 @@ def sample(STN, success='default', LP='original'):
 # @return a list of (degree, success) tuple for STNUs in the list
 def sampleAll(listOfFile, success='default', LP='original'):
     result = {}
-    weird = {}
     for fname in listOfFile:
         p, f = os.path.split(fname)
         print("Processing file: ", f)
@@ -205,31 +213,120 @@ def sampleAll(listOfFile, success='default', LP='original'):
         degree, success = sample(STN, success=success, LP=LP)
         result[f] = (degree, success)
 
-        if degree - success >= 0.1:
-            weird[f] = (degree, success)
 
-    return result, weird
+    return result
 
 
 
-# if __name__ == '__main__':
-#     listOfFile = []
-#     listOfFile += glob.glob(os.path.join('../../../examples/dynamic/', '*.json'))
-#     listOfFile += glob.glob(os.path.join('../../../examples/uncertain/', '*.json'))
-#     listOfFile += glob.glob(os.path.join('../../../examples/chain/', '*.json'))
+# -------------------------------------------------------------------------
+#  Analyze result from the solver
+# -------------------------------------------------------------------------
+
+
+##
+# \fn actual_vol(result_name)
+# \brief Calculate the actual volume from solver's result
 #
-#     print("Testing with Original LP...\n")
-#     resultD_1, weird1 = sampleAll(listOfFile, success='new')
-#     result_1 = list(resultD_1.values())
-#     x_1 = [d[0] for d in result_1]
-#     y_1 = [d[1] for d in result_1]
-#     plt.plot(x_1, y_1, 'o')
-#     plt.xlim(-0.04, 1.04)
-#     plt.ylim(-0.04, 1.04)
-#     plt.xlabel("Degree of strong controllability")
-#     plt.ylabel("Success rate")
-#     plt.title("Original LP")
+# @param result_name        The path to json file that contains solver's result
 #
-#     fname = os.path.join('../../../', 'original_obj.png')
-#     plt.savefig(fname, format='png')
-#     plt.close()
+# @return A dictionary in which keys are the name of the network and values are
+#         the maximized volume that guarantees strong controllability
+def actual_vol(result_name):
+    with open(result_name, 'r') as f:
+        result = json.loads(f.read())['normal']
+
+    actual_Dict = {}
+    for x in list(result.keys()):
+        v = result[x]
+        actual = math.exp(v)
+        actual_Dict[x] = actual
+
+    return actual_Dict
+
+
+##
+# \fn compare(actual_Dict)
+# \brief Compute the actual and approximated degree of strong controllability
+#
+# @param actual_Dict        A dictionary containing actual volume
+#
+# @return A dictionary in which keys are the name of the network and values are
+#         (approximation, actual degree)
+def compare(actual_Dict):
+    dynamic_folder = input("Please input directory with DC STNUs:\n")
+    uncertain_folder = input("Please input directory with uncertain STNUs:\n")
+
+    compare_Dict = {}
+    for x in list(actual_Dict.keys()):
+        actual_volume = actual_Dict[x]
+
+        if x[:7] == 'dynamic':
+            fname = os.path.join(dynamic_folder, x + '.json')
+        else:
+            fname = os.path.join(uncertain_folder, x + '.json')
+
+        STN = loadSTNfromJSONfile(fname)
+
+        _, _, epsilons = originalLP(STN.copy(), super=False, naiveObj=False)
+        original, shrinked = newInterval(STN, epsilons)
+
+        old, new, degree = calculateMetric(original, shrinked)
+        actual = float(actual_volume / old)
+        compare_Dict[x] = (degree, actual)
+
+    return compare_Dict
+
+
+# -------------------------------------------------------------------------
+#  Main function
+# -------------------------------------------------------------------------
+
+
+def main():
+    result_name = input("Please input path to result json file: \n")
+    actual_Dict = actual_vol(result_name)
+    compare_Dict = compare(actual_Dict)
+
+    # Plot...
+    L = list(compare_Dict.values())
+    x = [d[0] for d in L]
+    y = [d[1] for d in L]
+
+    plt.plot(x,y,'o')
+    plt.xlim(-0.04, 1.04)
+    plt.ylim(-0.04, 1.04)
+    plt.xlabel('Approximated degree of strong controllability')
+    plt.ylabel('Actual degree of strong controllability')
+    plt.title('Accuracy of Approximation Using DSC LP')
+
+    out_folder = input("Please input the output directory:\n")
+    fname = os.path.join(out_folder, 'accuracy.png')
+    plt.savefig(fname, format='png')
+    plt.close()
+
+
+
+if __name__ == '__main__':
+
+    dynamic_folder = input("Please input directory with DC STNUs:\n")
+    uncertain_folder = input("Please input directory with uncertain STNUs:\n")
+
+    listOfFile = []
+    listOfFile += glob.glob(os.path.join(dynamic_folder, '*.json'))
+    listOfFile += glob.glob(os.path.join(uncertain_folder, '*.json'))
+
+    resultD_1= sampleAll(listOfFile, success='new')
+    result_1 = list(resultD_1.values())
+    x_1 = [d[0] for d in result_1]
+    y_1 = [d[1] for d in result_1]
+    plt.plot(x_1, y_1, 'o')
+    plt.xlim(-0.04, 1.04)
+    plt.ylim(-0.04, 1.04)
+    plt.xlabel("Approximated degree of strong controllability")
+    plt.ylabel("Probabiliy of success")
+    plt.title("Success rate of ...")
+
+    out_folder = input("Please input the output directory:\n")
+    fname = os.path.join(out_folder, 'success_rate.png')
+    plt.savefig(fname, format='png')
+    plt.close()
