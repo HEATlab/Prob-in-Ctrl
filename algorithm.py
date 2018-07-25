@@ -7,9 +7,7 @@ from util import *
 #       https://www.ijcai.org/proceedings/2017/0598.pdf
 
 # TODO: Add DAG to DCDijkstra?
-# TODO: There is something wrong with the DCDijkstra. Returns False when it
-#       should not. Figure out why...
-# TODO: Test extractEdgePath and extractConflict
+# TODO: Test extractConflict
 
 
 
@@ -26,18 +24,26 @@ from util import *
 #         vertex v to s
 def extractEdgePath(s, v, labelDist, unlabelDist):
     result = []
-    # print(labelDist, unlabelDist)
-    # while True:
-    #     distArray = labelDist if v in labelDist else unlabelDist
-    #     weight, edge = distArray[v]
-    #     result.append(edge)
-    #     v = edge.j
-    #
-    #     print("hello", v, s)
-    #     if edge.j == s:
-    #         break
 
-    return (labelDist, unlabelDist)
+    while True:
+        if v in labelDist and v in unlabelDist:
+            if not labelDist[v][1]:
+                distArray = unlabelDist
+            if not unlabelDist[v][1]:
+                distArray = labelDist
+        elif v in labelDist:
+            distArray = labelDist
+        else:
+            distArray = unlabelDist
+
+        weight, edge = distArray[v]
+        result.append(edge)
+        v = edge.j
+
+        if edge.j == s:
+            break
+
+    return result
 
 
 
@@ -54,42 +60,42 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
 # TODO: In Williams paper, novel and preds are input to this function. Figure
 #       out why...
 def extractConflict(STN, edges, D):
-    conflicts = {}
-    conflicts['free'] = set()
-    conflicts['contingent'] = set()
+    # conflicts = {}
+    # conflicts['free'] = set()
+    # conflicts['contingent'] = set()
+    #
+    # for e in edges:
+    #     start = e.i
+    #     end = e.j
+    #
+    #     if start not in D and end not in D:
+    #         orig = STN.getEdge(start, end)
+    #         entry = (start, end, 'upper') if orig.i == start \
+    #                                         else (end, start, 'lower')
+    #         conflicts['free'].add(entry)
+    #     elif start in D:
+    #         orig = D[start]
+    #
+    #         if e.type == edgeType.NORMAL:
+    #             entry = (orig.i, orig.j, 'lower')
+    #             conflicts['contingent'].add(entry)
+    #
+    #             if end == orig.j:
+    #                 entry2 = (orig.i, orig.j, 'upper')
+    #                 conflicts['contingent'].add(entry2)
+    #
+    #     else:
+    #         orig = D[end]
+    #         if e.type == edgeType.UPPER:
+    #             entry1 = (orig.i, orig.j, 'lower')
+    #             entry2 = (orig.i, orig.j, 'upper')
+    #             conflicts['contingent'].add(entry1)
+    #             conflicts['contingent'].add(entry2)
+    #         elif start == orig.i:
+    #             entry = (orig.i, orig.j, 'lower')
+    #             conflicts['contingent'].add(entry)
 
-    for e in edges:
-        start = e.i
-        end = e.j
-
-        if start not in D and end not in D:
-            orig = STN.getEdge(start, end)
-            entry = (start, end, 'upper') if orig.i == start \
-                                            else (end, start, 'lower')
-            conflicts['free'].add(entry)
-        elif start in D:
-            orig = D[start]
-
-            if e.type == edgeType.NORMAL:
-                entry = (orig.i, orig.j, 'lower')
-                conflicts['contingent'].add(entry)
-
-                if end == orig.j:
-                    entry2 = (orig.i, orig.j, 'upper')
-                    conflicts['contingent'].add(entry2)
-
-        else:
-            orig = D[end]
-            if e.type == edgeType.UPPER:
-                entry1 = (orig.i, orig.j, 'lower')
-                entry2 = (orig.i, orig.j, 'upper')
-                conflicts['contingent'].add(entry1)
-                conflicts['contingent'].add(entry2)
-            elif start == orig.i:
-                entry = (orig.i, orig.j, 'lower')
-                conflicts['contingent'].add(entry)
-
-    return conflicts
+    return edges
 
 
 
@@ -125,12 +131,9 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
             else:
                 labelDist[edge.i] = (edge.weight, edge)
 
-
-
-
     if start in callStack[1:]:
-        # return False, [], start
-        return False
+        return False, [], start
+        #return False
 
     preds[start] = (labelDist, unlabelDist)
 
@@ -144,16 +147,16 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
         if v in negNodes:
             newStack = [v] + callStack
-            # result, edges, end = DCDijkstra(G, v, preds, novel, callStack, negNodes)
-            result = DCDijkstra(G, v, preds, novel, newStack, negNodes)
+            result, edges, end = DCDijkstra(G, v, preds, novel, newStack, negNodes)
+            # result = DCDijkstra(G, v, preds, novel, newStack, negNodes)
 
             if not result:
-                # if end != None:
-                #     edges += extractEdgePath(start, v, labelDist, unlabelDist)
-                # if end == start:
-                #     end = None
-                # return False, edges, end
-                return False
+                if end != None:
+                   edges += extractEdgePath(start, v, labelDist, unlabelDist)
+                if end == start:
+                   end = None
+                return False, edges, end
+                # return False
 
         for edge in G.incomingEdges(v):
             if edge.weight >= 0 and (edge.type != edgeType.LOWER or \
@@ -166,8 +169,8 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
                     Q.addOrDecKey((edge.i, label), w)
 
     negNodes.remove(start)
-    # return True, [], None
-    return True
+    return True, [], None
+    # return True
 
 
 
@@ -189,12 +192,13 @@ def DC_Checker(STN):
     preds = {}
 
     for v in negNodes:
-        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
-        result = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+        result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+        #result = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+        #print(v, result)
 
         if not result:
-            #return False, extractConflict(STN, edges, D)
-            return False
+            return False, extractConflict(STN, edges, D)
+            #return False
 
-    #return True, []
-    return True
+    return True, []
+    #return True
