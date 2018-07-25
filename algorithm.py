@@ -93,6 +93,7 @@ def extractConflict(STN, edges, D):
 
 
 
+
 ##
 # \fn DCDijkstra(G, start, preds, novel, callStack, negNodes)
 # \brief Determine if there is any semi-reducible negative cycles in an input
@@ -115,33 +116,26 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     unlabelDist = {}
     labelDist[start] = (0, None)
     unlabelDist[start] = (0, None)
-    #
-    # print(start)
 
     for edge in G.incomingEdges(start):
-        # if edge.weight < 0:
-        #     Q.push((edge.i, edge.type, edge.parent), edge.weight)
-        #     if edge.parent == None:
-        #         unlabelDist[edge.i] = (edge.weight, edge)
-        #     else:
-        #         labelDist[edge.i] = (edge.weight, edge)
+        if edge.weight < 0:
+            Q.push((edge.i, edge.parent), edge.weight)
+            if edge.parent == None:
+                unlabelDist[edge.i] = (edge.weight, edge)
+            else:
+                labelDist[edge.i] = (edge.weight, edge)
 
-        Q.push((edge.i, edge.type, edge.parent), edge.weight)
-        if not edge.parent:
-            unlabelDist[edge.i] = (edge.weight, edge)
-        else:
-            labelDist[edge.i] = (edge.weight, edge)
 
-    if start in callStack[:-1]:
+
+
+    if start in callStack[1:]:
         # return False, [], start
-        #
-        # print("Fails here: ", callStack)
         return False
 
     preds[start] = (labelDist, unlabelDist)
 
     while not Q.isEmpty():
-        weight, (v, type, label) = Q.pop()
+        weight, (v, label) = Q.pop()
 
         if weight >= 0:
             G.addEdge(v, start, weight)
@@ -149,9 +143,9 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
             continue
 
         if v in negNodes:
-            callStack.append(v)
+            newStack = [v] + callStack
             # result, edges, end = DCDijkstra(G, v, preds, novel, callStack, negNodes)
-            result = DCDijkstra(G, v, preds, novel, callStack, negNodes)
+            result = DCDijkstra(G, v, preds, novel, newStack, negNodes)
 
             if not result:
                 # if end != None:
@@ -159,24 +153,21 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
                 # if end == start:
                 #     end = None
                 # return False, edges, end
-
-                # print("FAIL!!!")
                 return False
 
         for edge in G.incomingEdges(v):
             if edge.weight >= 0 and (edge.type != edgeType.LOWER or \
-                                                    edge.parent != label):
+                                                        edge.parent != label):
                 w = edge.weight + weight
-                distArray = unlabelDist if not label else labelDist
+                distArray = labelDist if label != None else unlabelDist
 
                 if edge.i not in distArray or w < distArray[edge.i][0]:
                     distArray[edge.i] = (w, edge)
-                    Q.addOrDecKey((edge.i, type, label), w)
+                    Q.addOrDecKey((edge.i, label), w)
 
     negNodes.remove(start)
     # return True, [], None
     return True
-
 
 
 
@@ -198,77 +189,12 @@ def DC_Checker(STN):
     preds = {}
 
     for v in negNodes:
-        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes)
-        #print("Node: ", v)
-        result = DCDijkstra(G, v, preds, novel, [v], negNodes)
+        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+        result = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+
         if not result:
             #return False, extractConflict(STN, edges, D)
             return False
 
     #return True, []
     return True
-
-
-
-def DC(G, start, callStack, negNodes):
-
-    if start in callStack[:-1]:
-        return False
-
-    Q = PriorityQueue()
-    distance = {}
-    distance[start] = 0
-
-    for v in list(G.verts.keys()):
-        if v != start:
-            distance[v] = float('Inf')
-
-    for edge in G.incomingEdges(start):
-        distance[edge.i] = edge.weight
-        Q.push(edge.i, edge.weight)
-
-    while not Q.isEmpty():
-        weight, v = Q.pop()
-
-        if distance[v] >= 0:
-            G.addEdge(v, start, distance[v])
-            continue
-
-        if v in negNodes:
-            callStack.append(v)
-            result = DC(G, v, callStack, negNodes)
-
-            if not result:
-                return False
-
-        for edge in G.incomingEdges(v):
-            if edge.weight < 0:
-                continue
-
-            if edge.type == edgeType.LOWER and edge.parent == v:
-                continue
-
-            w = edge.weight + weight
-            if w < distance[edge.i]:
-                distance[edge.i] = w
-                Q.addOrDecKey(edge.i, w)
-
-    return True
-
-
-def testDC(STN):
-    G, D = normal(STN)
-    negNodes = G.getNegNodes()
-
-    for v in negNodes:
-        # result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes)
-        result = DC(G, v, [v], negNodes)
-        if not result:
-            return False
-
-    return True
-
-
-
-
-# Dynamic 3,4,
