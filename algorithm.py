@@ -7,8 +7,6 @@ from util import *
 #       https://www.ijcai.org/proceedings/2017/0598.pdf
 
 # TODO: Add DAG to DCDijkstra?
-# TODO: Test extractConflict
-
 
 
 ##
@@ -48,17 +46,17 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
 
 
 ##
-# \fn extractConflict(STN, edges, dict)
-# \brief Extract conflicts in an STN given the edges along the detected
-#        semi-reducible negative cycle
+# \fn extractConflict(edges, novel, preds)
+# \brief Extract edges along the detected semi-reducible negative cycle
 #
-# @param STN        an input STN to extract conflict
-# @param edges      a list of edges along semi-reducible negative cycle
-# @param D          a dictionary stores the additional vertices in normal form
+# @param edges          a list of edges along semi-reducible negative cycle
+# @param novel          a list of novel edges
+# @param preds          a dictionary of predecessors
 #
-# @return A dictionary containing conflicts in input STNU
+# @return A list of original edges along the semi-reducible negative cycle
 def extractConflict(edges, novel, preds):
     result = []
+
     for edge in edges:
         entry = (edge.i, edge.j, edge.weight)
         if entry not in novel:
@@ -69,10 +67,19 @@ def extractConflict(edges, novel, preds):
     return result
 
 
+##
+# \fn resolveNovel(e, novel, preds)
+# \brief Extract original edges that derive the input novel path
+#
+# @param e              a novel edge
+# @param novel          a list of novel edges
+# @param preds          a dictionary of predecessors
+#
+# @return a list of original edges along the path represented by input novel
+#         edge
 def resolveNovel(e, novel, preds):
     result = []
     entry = (e.i, e.j, e.weight)
-    print(e)
     if entry not in novel:
         result.append(e)
         return result
@@ -81,7 +88,13 @@ def resolveNovel(e, novel, preds):
     distArray = labelDist if e.i in labelDist else unlabelDist
 
     weight, new_edge = distArray[e.i]
-    result.append(distArray[new_edge.j][1])
+
+    end = new_edge.j
+    while end != e.j:
+        add = distArray[end][1]
+        result.append(add)
+        end = add.j
+
     result = result + resolveNovel(new_edge, novel, preds)
 
     return result
@@ -120,7 +133,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
     if start in callStack[1:]:
         return False, [], start
-        #return False
 
     preds[start] = (labelDist, unlabelDist)
 
@@ -135,7 +147,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
         if v in negNodes:
             newStack = [v] + callStack
             result, edges, end = DCDijkstra(G, v, preds, novel, newStack, negNodes)
-            # result = DCDijkstra(G, v, preds, novel, newStack, negNodes)
 
             if not result:
                 if end != None:
@@ -143,7 +154,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
                 if end == start:
                    end = None
                 return False, edges, end
-                # return False
 
         for edge in G.incomingEdges(v):
             if edge.weight >= 0 and (edge.type != edgeType.LOWER or \
@@ -157,7 +167,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
     negNodes.remove(start)
     return True, [], None
-    # return True
 
 
 
@@ -180,12 +189,8 @@ def DC_Checker(STN):
 
     for v in negNodes:
         result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
-        #result = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
-        #print(v, result)
 
         if not result:
             return False, extractConflict(edges, novel, preds)
-            #return False
 
     return True, []
-    #return True
