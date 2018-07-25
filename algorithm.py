@@ -57,47 +57,34 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
 # @param D          a dictionary stores the additional vertices in normal form
 #
 # @return A dictionary containing conflicts in input STNU
-# TODO: In Williams paper, novel and preds are input to this function. Figure
-#       out why...
-def extractConflict(STN, edges, D):
-    # conflicts = {}
-    # conflicts['free'] = set()
-    # conflicts['contingent'] = set()
-    #
-    # for e in edges:
-    #     start = e.i
-    #     end = e.j
-    #
-    #     if start not in D and end not in D:
-    #         orig = STN.getEdge(start, end)
-    #         entry = (start, end, 'upper') if orig.i == start \
-    #                                         else (end, start, 'lower')
-    #         conflicts['free'].add(entry)
-    #     elif start in D:
-    #         orig = D[start]
-    #
-    #         if e.type == edgeType.NORMAL:
-    #             entry = (orig.i, orig.j, 'lower')
-    #             conflicts['contingent'].add(entry)
-    #
-    #             if end == orig.j:
-    #                 entry2 = (orig.i, orig.j, 'upper')
-    #                 conflicts['contingent'].add(entry2)
-    #
-    #     else:
-    #         orig = D[end]
-    #         if e.type == edgeType.UPPER:
-    #             entry1 = (orig.i, orig.j, 'lower')
-    #             entry2 = (orig.i, orig.j, 'upper')
-    #             conflicts['contingent'].add(entry1)
-    #             conflicts['contingent'].add(entry2)
-    #         elif start == orig.i:
-    #             entry = (orig.i, orig.j, 'lower')
-    #             conflicts['contingent'].add(entry)
+def extractConflict(edges, novel, preds):
+    result = []
+    for edge in edges:
+        entry = (edge.i, edge.j, edge.weight)
+        if entry not in novel:
+            result.append(edge)
+        else:
+            result += resolveNovel(edge, novel, preds)
 
-    return edges
+    return result
 
 
+def resolveNovel(e, novel, preds):
+    result = []
+    entry = (e.i, e.j, e.weight)
+    print(e)
+    if entry not in novel:
+        result.append(e)
+        return result
+
+    labelDist, unlabelDist = preds[e.j]
+    distArray = labelDist if e.i in labelDist else unlabelDist
+
+    weight, new_edge = distArray[e.i]
+    result.append(distArray[new_edge.j][1])
+    result = result + resolveNovel(new_edge, novel, preds)
+
+    return result
 
 
 ##
@@ -197,7 +184,7 @@ def DC_Checker(STN):
         #print(v, result)
 
         if not result:
-            return False, extractConflict(STN, edges, D)
+            return False, extractConflict(edges, novel, preds)
             #return False
 
     return True, []
