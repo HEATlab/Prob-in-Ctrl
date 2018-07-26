@@ -9,6 +9,11 @@ from util import *
 # TODO: Add DAG to DCDijkstra?
 
 
+# -------------------------------------------------------------------------
+# Helper Functions
+# -------------------------------------------------------------------------
+
+
 ##
 # \fn extractEdgePath(s, v, labelDist, unlabelDist)
 # \brief Extract the edges along the path from vertex v to vertex s
@@ -100,6 +105,68 @@ def resolveNovel(e, novel, preds):
     return result
 
 
+
+
+
+##
+# \fn getFinalResult(conflicts, STN, D, report=True)
+# \brief extract information about which constraint in the original STNU can
+#        be relaxed to resolve the conflict
+#
+# @param conflicts      A list labeled edges along the negative cycle
+# @param STN            The original STNU
+# @param D              A dictionary containing info about added vertices
+# @param report         Flag indicating whether to print message or not
+#
+# @return A dictionary containing information about the original constarints
+#         in the original STNU that we can relax and whether LOWER or UPPER
+#         bound can be relaxed
+def getFinalResult(conflicts, STN, D, report=True):
+    result = {}
+    result['requirement'] = {}
+    result['contingent'] = {}
+    for edge in conflicts:
+        start = edge.i
+        end = edge.j
+        if start in D:
+            continue
+        elif end in D:
+            e = D[end]
+            if start == e.j and edge.type == edgeType.UPPER:
+                result['contingent'][(e.i, e.j)] = (e, 'UPPER')
+            elif start == e.i:
+                result['contingent'][(e.i, e.j)] = (e, 'LOWER')
+        else:
+            e = STN.getEdge(start, end)
+            if start == e.i:
+                result['requirement'][(e.i, e.j)] = (e, 'UPPER')
+            else:
+                result['requirement'][(e.i, e.j)] = (e, 'LOWER')
+
+    if report:
+        print("Reporting Conflicts:")
+
+        print("\nThe requirement edges we can relax are: ")
+        for i,j in list(result['requirement'].keys()):
+            edge, bound = result['requirement'][(i,j)]
+            print(edge, bound)
+
+        print("\nThe contingent edges we can relax are: ")
+        for i,j in list(result['contingent'].keys()):
+            edge, bound = result['contingent'][(i,j)]
+            print(edge, bound)
+
+
+    return result
+
+
+
+
+
+# -------------------------------------------------------------------------
+# Major Functions: DCDijkstra and DC_Checker
+# -------------------------------------------------------------------------
+
 ##
 # \fn DCDijkstra(G, start, preds, novel, callStack, negNodes)
 # \brief Determine if there is any semi-reducible negative cycles in an input
@@ -146,7 +213,8 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
         if v in negNodes:
             newStack = [v] + callStack
-            result, edges, end = DCDijkstra(G, v, preds, novel, newStack, negNodes)
+            result, edges, end = DCDijkstra(G, v, preds, novel, \
+                                                        newStack, negNodes)
 
             if not result:
                 if end != None:
@@ -181,16 +249,19 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 #
 # @return Return True if the input STNU is dynamically controllable. Otherwise,
 #         return False and conflicts.
-def DC_Checker(STN):
-    G, D = normal(STN)
+def DC_Checker(STN, report=True):
+    G, D = normal(STN.copy())
     negNodes = G.getNegNodes()
     novel = []
     preds = {}
 
     for v in negNodes:
-        result, edges, end = DCDijkstra(G, v, preds, novel, [v], negNodes.copy())
+        result, edges, end = DCDijkstra(G, v, preds, novel, \
+                                                    [v], negNodes.copy())
 
         if not result:
-            return False, extractConflict(edges, novel, preds)
+            conflicts = extractConflict(edges, novel, preds)
+            result = getFinalResult(conflicts, STN, D, report=report)
+            return False, conflicts, result
 
-    return True, []
+    return True, [], {}

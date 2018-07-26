@@ -47,7 +47,7 @@ def addConstraint(constraint,problem):
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
-def setUp(STN, super=True, uniform_step=False, proportion=False, maxmin=False):
+def setUp(STN, super=False, uniform_step=False, proportion=False, maxmin=False):
     bounds = {}
     epsilons = {}
 
@@ -193,7 +193,8 @@ def setUp(STN, super=True, uniform_step=False, proportion=False, maxmin=False):
 #
 # @return   LP status, A dictionary of the LP_variables for the bounds on
 #           timepoints and a dictionary of LP variables for epsilons
-def originalLP(STN, super=True, uniform_step=False, naiveObj=True, debug=False):
+def originalLP(STN, super=False, uniform_step=False, \
+                                    naiveObj=False, debug=False):
     bounds, epsilons, prob = setUp(STN, super=super, uniform_step=uniform_step)
 
     # Set up objective function for the LP
