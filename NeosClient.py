@@ -39,7 +39,7 @@ except ImportError:
 
 
 ##
-# \fn getObjValue(xml_name, username=None, user_password=None, output=False)
+# \fn getObjValue(xml_name, outfolder, username, user_password, output)
 # \brief Submit job to neos server and let it report the final result
 #
 # \details This function is modified from the original NeoClient.py file so
@@ -54,7 +54,8 @@ except ImportError:
 # @param output         Flag indicating whether we want to report final result
 #
 # @return if output, return the objective value from the final result
-def getObjValue(xml_name, outfolder, username=None, user_password=None, output=False):
+def getObjValue(xml_name, outfolder, username=None, \
+                                    user_password=None, output=False):
     neos = xmlrpclib.ServerProxy("https://neos-server.org:3333")
 
     alive = neos.ping()

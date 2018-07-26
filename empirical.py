@@ -59,7 +59,7 @@ def calculateMetric(original, shrinked):
 
 
 ##
-# \fn scheduleIsValid(network, schedule)
+# \fn scheduleIsValid(network: STN, schedule: dict) -> STN
 # \brief Given an STNU and schedule, checks if the schedule is valid or not.
 #
 # @param network       An input STNU
@@ -124,7 +124,7 @@ def sampleOnce(original, shrinked):
 
 
 ##
-# \fn getSchedule(STN, bounds, schedule)
+# \fn getSchedule(STN, schedule)
 # \brief Construct a possible schedule for an STN given a fixed decision
 #
 # @param STN            An STNU we want to test
@@ -157,7 +157,7 @@ def altSampleOnce(STN, schedule):
 
 
 ##
-# \fn sample(STN, LP='original')
+# \fn sample(STN, success='default', LP='original')
 # \brief Compute the success rate of an STNU by randomly sample 50000 times
 #
 # \note There are three kinds of LPs we can use to compute the amount of
@@ -197,7 +197,7 @@ def sample(STN, success='default', LP='original'):
 
 
 ##
-# \fn sampleAll(listOfFile, LP='original')
+# \fn sampleAll(listOfFile, success='default', LP='original')
 # \brief Compute the success rate for a list of STNUs
 #
 # @param STN      An STN to test

@@ -32,7 +32,7 @@ def addConstraint(constraint,problem):
 
 
 ##
-# \fn setUp(STN, super=True, uniform_step=False)
+# \fn setUp(STN, super=False, uniform_step=False, proportion=False,maxmin=False)
 # \brief Initializes the LP problem and the LP variables
 #
 # @param STN            An input STNU
@@ -179,7 +179,7 @@ def setUp(STN, super=False, uniform_step=False, proportion=False, maxmin=False):
 
 
 ##
-# \fn originalLP(STN, super=True, uniform_step=False, naiveObj=True,debug=False)
+# \fn originalLP(STN,super=False,uniform_step=False,naiveObj=False,debug=False):
 # \brief Runs the LP on the input STN
 #
 # @param STN            An input STNU

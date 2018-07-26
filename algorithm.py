@@ -239,7 +239,7 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
 
 ##
-# \fn DC_Checker(STN)
+# \fn DC_Checker(STN, report=True)
 # \brief Check whether an input STNU is dynamically controllable
 #
 # \details An STNU is dynamically controllable if there is not semi-reducible

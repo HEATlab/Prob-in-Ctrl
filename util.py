@@ -43,7 +43,7 @@ def dc_checking(STN):
 
 
 ##
-# \fn dc_checking(filename)
+# \fn dc_checking_file(filename)
 # \brief Check if an input STN is dynamically controllable
 #
 # @param filename  An input STN object to check
