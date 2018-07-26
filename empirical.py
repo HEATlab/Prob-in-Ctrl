@@ -233,7 +233,7 @@ def sampleAll(listOfFile, success='default', LP='original'):
 #         the maximized volume that guarantees strong controllability
 def actual_vol(result_name):
     with open(result_name, 'r') as f:
-        result = json.loads(f.read())['normal']
+        result = json.loads(f.read())
 
     actual_Dict = {}
     for x in list(result.keys()):
@@ -267,7 +267,7 @@ def compare(actual_Dict):
 
         STN = loadSTNfromJSONfile(fname)
 
-        _, _, epsilons = originalLP(STN.copy(), super=False, naiveObj=False)
+        _, _, epsilons = originalLP(STN.copy())
         original, shrinked = newInterval(STN, epsilons)
 
         old, new, degree = calculateMetric(original, shrinked)
