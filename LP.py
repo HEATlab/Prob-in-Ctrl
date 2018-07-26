@@ -32,14 +32,10 @@ def addConstraint(constraint,problem):
 
 
 ##
-# \fn setUp(STN, super=False, uniform_step=False, proportion=False,maxmin=False)
+# \fn setUp(STN, proportion=False, maxmin=False)
 # \brief Initializes the LP problem and the LP variables
 #
 # @param STN            An input STNU
-# @param super          Flag indicating if we want to solve for Superinterval
-#                       (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param uniform_step   Flag indicating if we are applying the two step method
-#                       with only one universal epsilon
 # @param proportion     Flag indicating whether we are setting up LP to
 #                       proportionally shrink contingent intervals
 # @param maxmin         Flag indicating whether we are setting up LP to
@@ -47,12 +43,12 @@ def addConstraint(constraint,problem):
 #
 # @return   A tuple (bounds, deltas, prob) where bounds and deltas are
 #           dictionaries of LP variables, and prob is the LP problem instance
-def setUp(STN, super=False, uniform_step=False, proportion=False, maxmin=False):
+def setUp(STN, proportion=False, maxmin=False):
     bounds = {}
     epsilons = {}
 
     # Maximize for super and minimize for Subinterval
-    if super or maxmin:
+    if maxmin:
         prob = LpProblem('SuperInterval LP', LpMaximize)
     else:
         prob = LpProblem('Max Subinterval LP', LpMinimize)
@@ -100,67 +96,17 @@ def setUp(STN, super=False, uniform_step=False, proportion=False, maxmin=False):
     if proportion:
         return (bounds, epsilons, prob)
 
-
-    # If applying uniform_step method, only one epsilon is needed
-    if uniform_step:
-        upbound = None
-
-        # ##
-        # NOTE: If we do not set this bound, the epsilon does not make sense
-        #       for one of our examples. Set up this first, maybe change in
-        #       the future
-        # ##
-        if not super:
-            intL = [(e.Cij + e.Cji) for e in STN.contingentEdges.values()]
-            upbound = min(intL) / 2
-        else:
-            lowL = [-e.Cji for e in STN.contingentEdges.values()]
-            upbound = min(lowL)
-
-        epsilons[('eps','-')] = LpVariable('eps', lowBound=0, upBound=upbound)
-
     for i,j in STN.edges:
         if (i,j) in STN.contingentEdges:
-            if not uniform_step:
-                epsilons[(j,'+')] = LpVariable('eps_%i_hi'%j, lowBound=0,
-                                                                upBound=None)
-                epsilons[(j,'-')] = LpVariable('eps_%i_lo'%j, lowBound=0,
-                                                                upBound=None)
+            epsilons[(j,'+')] = LpVariable('eps_%i_hi'%j, lowBound=0,
+                                                            upBound=None)
+            epsilons[(j,'-')] = LpVariable('eps_%i_lo'%j, lowBound=0,
+                                                            upBound=None)
 
-                if super:
-                    addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
-                            STN.getEdgeWeight(i,j) + epsilons[(j,'+')], prob)
-                    addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
-                            -STN.getEdgeWeight(j,i) - epsilons[(j,'-')], prob)
-
-
-                    # ##
-                    # NOTE: A contingent interval cannot have negative lower
-                    #       bound. This is not an issue for Wilson's LP because
-                    #       the Max Subinterval always make the lower bound
-                    #       larger. But we need to make sure that we add this
-                    #       constraint here.
-                    # ##
-                    addConstraint(-STN.getEdgeWeight(j,i) -
-                                            epsilons[(j,'-')] >= 0, prob)
-
-                else:
-                    addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
-                            STN.getEdgeWeight(i,j) - epsilons[(j,'+')], prob)
-                    addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
-                            -STN.getEdgeWeight(j,i) + epsilons[(j,'-')], prob)
-
-            elif super:
-                addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
-                        STN.getEdgeWeight(i,j) + epsilons[('eps','-')], prob)
-                addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
-                        -STN.getEdgeWeight(j,i) - epsilons[('eps','-')], prob)
-
-            else:
-                addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
-                        STN.getEdgeWeight(i,j) - epsilons[('eps','-')], prob)
-                addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
-                        -STN.getEdgeWeight(j,i) + epsilons[('eps','-')], prob)
+            addConstraint(bounds[(j,'+')]-bounds[(i,'+')] ==
+                    STN.getEdgeWeight(i,j) - epsilons[(j,'+')], prob)
+            addConstraint(bounds[(j,'-')]-bounds[(i,'-')] ==
+                    -STN.getEdgeWeight(j,i) + epsilons[(j,'-')], prob)
 
         else:
             # NOTE: We need to handle the infinite weight edges. Otherwise
@@ -179,29 +125,22 @@ def setUp(STN, super=False, uniform_step=False, proportion=False, maxmin=False):
 
 
 ##
-# \fn originalLP(STN,super=False,uniform_step=False,naiveObj=False,debug=False):
+# \fn originalLP(STN, naiveObj=False, debug=False):
 # \brief Runs the LP on the input STN
 #
 # @param STN            An input STNU
-# @param super          Flag indicating if we want to solve for Superinterval
-#                       (strongly controllable) or Max Subinterval(weak/dynamic)
-# @param uniform_step   Flag indicating if we are applying the two step method
-#                       with only one universal epsilon
 # @param naiveObj       Flag indicating if we are using the naive objective
 #                       function
 # @param debug          Print optional status messages
 #
 # @return   LP status, A dictionary of the LP_variables for the bounds on
 #           timepoints and a dictionary of LP variables for epsilons
-def originalLP(STN, super=False, uniform_step=False, \
-                                    naiveObj=False, debug=False):
-    bounds, epsilons, prob = setUp(STN, super=super, uniform_step=uniform_step)
+def originalLP(STN, naiveObj=False, debug=False):
+    bounds, epsilons, prob = setUp(STN)
 
     # Set up objective function for the LP
-    if naiveObj or (uniform_step and not naiveObj):
-        #Obj = sum([epsilons[(i,j)] for i,j in epsilons])
-        Obj = epsilons[('eps','-')] if uniform_step \
-                            else sum([epsilons[(i,j)] for i,j in epsilons])
+    if naiveObj:
+        Obj = sum([epsilons[(i,j)] for i,j in epsilons])
     else:
         eps = []
         for i,j in STN.contingentEdges:
@@ -249,7 +188,7 @@ def originalLP(STN, super=False, uniform_step=False, \
 #           LP_variables for epsilons
 def proportionLP(STN, debug=False):
     # set up the constraints for every vertex
-    bounds, epsilons, prob = setUp(STN, super=False, proportion=True)
+    bounds, epsilons, prob = setUp(STN, proportion=True)
     delta = LpVariable('delta', lowBound=0, upBound=1)
 
     # set up constraints for every edges
@@ -321,7 +260,7 @@ def proportionLP(STN, debug=False):
 # @return   LP solving status, min contingent int length and a dictionary of the
 #           LP_variables for epsilons
 def maxminLP(STN, debug=True):
-    bounds, epsilons, prob = setUp(STN, super=False, maxmin=True)
+    bounds, epsilons, prob = setUp(STN, maxmin=True)
     z = LpVariable('z', lowBound=0, upBound=None)
 
     for (i,j) in STN.contingentEdges:
@@ -372,7 +311,7 @@ def maxminLP(STN, debug=True):
 # @return   LP solving status, max amount of uncertainty removed from contingent
 #           intervals and a dictionary of the LP_variables for epsilons
 def minmaxLP(STN, debug=True):
-    bounds, epsilons, prob = setUp(STN, super=False)
+    bounds, epsilons, prob = setUp(STN)
     z = LpVariable('z', lowBound=0, upBound=None)
 
     for (i,j) in STN.contingentEdges:
