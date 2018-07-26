@@ -50,11 +50,21 @@ def main():
     stats = {}
     for file_name in fnames:
         stats[file_name] = correlation_from_file(f"{relpath}{file_name}")
-
-    # For now we just print out the results instead of actually storing them in a file
-    for file_nam, stat in stats.items():
-        print("The data in", file_name, "had\n\tCorrelation:\t", stat[0], 
-                "\n\tP-value:\t", stat[1])
+    
+    # Clear file
+    open(f"{relpath}{pretty_out}", 'w').close()
+    
+    # Write to file
+    pretty_file = open(f"{relpath}{pretty_out}", 'a')
+    for file_name, stat in stats.items():
+        line: str = (f"The data in {file_name} had" "\n\tCorrelation:\t"
+                f"{stat[0]}" "\n\tP-value:\t" f"{stat[1]}" "\n\n")
+        pretty_file.write(line) 
+    pretty_file.close()
+    
+    # Store dictionary in JSON file
+    with open(f"{relpath}{raw_out}", 'w') as storage:
+        json.dump(stats, storage)
     return 0
 
 if __name__ == '__main__':
