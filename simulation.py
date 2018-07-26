@@ -1,9 +1,12 @@
 from util import PriorityQueue
 from stn import STN
+import random
 
 ##
 # \file simulation.py
 # \brief Hosts some cheap implementations of dynamic execution strategies on STNUs
+
+MAX_FLOAT = 100000000000000000.0
 
 ##
 # \fn early_execution(network, realization)
@@ -40,9 +43,35 @@ def late_execution(network: STN, realization: dict) -> bool:
 def simulate_once(network: STN, is_early: bool) -> bool:
     # Generate the realization
     realization = {}
+
+    
     # Run the simulation
     if is_early:
         return early_execution(network, realization)
     else:
         return late_execution(network, realization)
 
+
+# -------------------------------------------------------------------------
+#  Modify Networks
+# -------------------------------------------------------------------------
+##
+# \fn find_bounds(network)
+# \brief 
+#
+# @param
+# @param
+#
+# @return 
+def find_bounds(network: STN) -> dict:
+    return {}
+
+
+##
+# \fn add_zeropoint(network, is_contingent)
+# \brief
+# 
+# @param
+# @param
+def add_zeropoint(network: STN, is_contingent: bool):
+    return 0
