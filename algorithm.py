@@ -161,8 +161,6 @@ def getFinalResult(conflicts, STN, D, report=True):
 
 
 
-
-
 # -------------------------------------------------------------------------
 # Major Functions: DCDijkstra and DC_Checker
 # -------------------------------------------------------------------------
