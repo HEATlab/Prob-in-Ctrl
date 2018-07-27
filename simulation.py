@@ -21,7 +21,8 @@ ZERO_ID = 0
 # @return A bool, which is True if and only if the execution is successful
 def early_execution(network: STN, realization: dict) -> bool:
     ## Bookkeeping for events
-    unused_events = set(self.verts.keys())
+    all_uncontrollables = set(network.uncontrollables)
+    unused_events = set(network.verts.keys())
     not_scheduled = PriorityQueue()
     final_schedule = {}
 
@@ -66,10 +67,10 @@ def early_execution(network: STN, realization: dict) -> bool:
         # We only care about events being moved later in time
         relevant_edges = self.getEdges(activated_event)
         for edge in relevant_edges:
-            if edge.j == activated_event:
-                lower_bound = current_time - edge.Cij
-                if lower_bound > true_weight[activated_event]:
-                    true_weight[activated_event] = lower_bound
+            if (edge.j == activated_event) and (edge.i not in all_uncontrollables):
+                if needs_early_update(edge, activated_event, current_time, true_weight):
+                    lower_bound = current_time - edge.Cij
+                    true_weight[edge.i] = lower_bound
         
         # Keep track of this for next iteration of loop
         old_time = current_time
@@ -100,7 +101,7 @@ def late_execution(network: STN, realization: dict) -> bool:
 # @param is_early     Boolean indicating whether we use early (True) or late (False)
 #                     strategy
 # 
-# @return A bool which is True if and only if execution is succesful
+# @return A bool which is True if and only if execution is successful
 def simulate_once(network: STN, is_early: bool) -> bool:
     # Generate the realization
     realization = {}
@@ -114,18 +115,52 @@ def simulate_once(network: STN, is_early: bool) -> bool:
 
 
 # -------------------------------------------------------------------------
+#  Simulation Helpers
+# -------------------------------------------------------------------------
+##
+# \fn needs_early_update()
+# \brief Checks if the endpoint of a particular edge needs to have its
+#        planned time updated in early execution
+#
+# @param edge
+# @param fixed_event
+# @param fixed_value
+# @param planned_times
+# 
+# @return True if and only if we should modify the edge's source vertex
+def needs_early_update(edge, fixed_event, fixed_value, planned_times):
+    new_time = fixed_value - edge.Cij
+    if new_time > planned_times[edge.i]:
+        return True
+
+# -------------------------------------------------------------------------
 #  Modify Networks
 # -------------------------------------------------------------------------
 ##
 # \fn find_bounds(network)
 # \brief 
 #
-# @param network      The STNU to compute bounds for
+# @param network      The STNU to compute bounds for early execution.
 #
 # @return A dictionary from controllable events to the implied lower and
 #         upper bounds (lb, ub) relative to the zero time point
 def find_bounds(network: STN) -> dict:
-    return {}
+    # Add zero timepoint
+    if ZERO_ID not in network.verts:
+        network.addVertex(ZERO_ID)
+    # Add bounds relative to zero timepoint
+    adjacent_to_zero = set(network.getAdjacent(ZERO_ID))
+    events = network.verts.keys()
+    bounds = {}
+    for event in events:
+        if (event != ZERO_ID) and (event not in adjacent_to_zero):
+            return 0
+        else:
+            return 0
+    
+    # To make sure zero timepoint starts first
+    bounds[ZERO_ID] (-1.0, 0.0)
+    return bounds
 
 
 ##
