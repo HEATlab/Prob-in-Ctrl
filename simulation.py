@@ -105,7 +105,8 @@ def late_execution(network: STN, realization: dict) -> bool:
 def simulate_once(network: STN, is_early: bool) -> bool:
     # Generate the realization
     realization = {}
-
+    for nodes, edge in network.contingentEdges.items():
+        realization[node[1]] = random.uniform(-edge.Cji, edge.Cij)
     
     # Run the simulation
     if is_early:
@@ -159,15 +160,15 @@ def find_bounds(network: STN) -> dict:
             return 0
     
     # To make sure zero timepoint starts first
-    bounds[ZERO_ID] (-1.0, 0.0)
+    bounds[ZERO_ID] = (-1.0, 0.0)
     return bounds
 
 
 ##
-# \fn add_zeropoint(network, is_contingent)
+# \fn set_dynamic_zeropoint(network)
 # \brief
 # 
 # @param
 # @param
-def add_zeropoint(network: STN, is_contingent: bool):
+def set_dynamic_zeropoint(network: STN):
     return 0

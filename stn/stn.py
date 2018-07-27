@@ -158,7 +158,7 @@ class STN(object):
         self.contingentEdges = {}
 
         ## A dictionary of requirement edges in the form
-        # {(Node1, Node2): Edge Object}
+        # {(Node1, Node2): Edge_Object}
         self.requirementEdges = {}
 
         ## The total amount of time allowed for an STN (implemented in
