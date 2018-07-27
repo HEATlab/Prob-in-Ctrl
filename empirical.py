@@ -1,6 +1,7 @@
 from stn import STN
 from stn import loadSTNfromJSONfile
 from LP import *
+from relax import *
 import matplotlib.pyplot as plt
 import glob
 import json
@@ -11,6 +12,11 @@ import math
 ##
 # \file empirical.py
 # \brief perform empirical analysis on our designed metric
+
+
+# -------------------------------------------------------------------------
+# Strong controllability
+# -------------------------------------------------------------------------
 
 
 ##
@@ -218,9 +224,9 @@ def sampleAll(listOfFile, success='default', LP='original'):
 
 
 
-# -------------------------------------------------------------------------
+# ---------------------------------
 #  Analyze result from the solver
-# -------------------------------------------------------------------------
+# ---------------------------------
 
 
 ##
@@ -277,17 +283,13 @@ def compare(actual_Dict):
     return compare_Dict
 
 
-# -------------------------------------------------------------------------
-#  Main function
-# -------------------------------------------------------------------------
 
-
-def main():
+def plot():
+    # Plot actual vs approximated
     result_name = input("Please input path to result json file: \n")
     actual_Dict = actual_vol(result_name)
     compare_Dict = compare(actual_Dict)
 
-    # Plot...
     L = list(compare_Dict.values())
     x = [d[0] for d in L]
     y = [d[1] for d in L]
@@ -304,10 +306,7 @@ def main():
     plt.savefig(fname, format='png')
     plt.close()
 
-
-
-if __name__ == '__main__':
-
+    # Plot success rate
     dynamic_folder = input("Please input directory with DC STNUs:\n")
     uncertain_folder = input("Please input directory with uncertain STNUs:\n")
 
@@ -330,3 +329,49 @@ if __name__ == '__main__':
     fname = os.path.join(out_folder, 'success_rate.png')
     plt.savefig(fname, format='png')
     plt.close()
+
+# -------------------------------------------------------------------------
+# Dynamic controllability
+# -------------------------------------------------------------------------
+
+def checkRelax():
+    r = {}
+    r['Once'] = []
+    r['More'] = []
+    r['None'] = []
+
+    uncertain_folder = input("Please input directory with uncertain STNUs:\n")
+    L = glob.glob(os.path.join(uncertain_folder, '*.json'))
+
+    for x in L:
+        p, f = os.path.split(x)
+        print("Processing: ", f)
+
+        STN = loadSTNfromJSONfile(x)
+        relaxedSTN, count = relaxSearch(STN.copy())
+
+        if not relaxedSTN:
+            r['None'].append(f)
+        else:
+            print(f, "relax {} times".format(count))
+
+            if count != 1:
+                r['More'].append(f)
+            else:
+                r['Once'].append(f)
+
+    return r
+
+
+
+
+
+
+
+# -------------------------------------------------------------------------
+#  Main function
+# -------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    #plot()
+    print("hello")
