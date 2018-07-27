@@ -187,6 +187,7 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     unlabelDist = {}
     labelDist[start] = (0, None)
     unlabelDist[start] = (0, None)
+    epsilon = 1e-5
 
     for edge in G.incomingEdges(start):
         if edge.weight < 0:
@@ -204,7 +205,7 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     while not Q.isEmpty():
         weight, (v, label) = Q.pop()
 
-        if weight >= 0:
+        if weight >= -epsilon:
             G.addEdge(v, start, weight)
             novel.append((v, start, weight))
             continue
@@ -259,7 +260,12 @@ def DC_Checker(STN, report=True):
 
         if not result:
             conflicts = extractConflict(edges, novel, preds)
-            result = getFinalResult(conflicts, STN, D, report=report)
-            return False, conflicts, result
+            bounds = getFinalResult(conflicts, STN, D, report=report)
 
-    return True, [], {}
+            weight = 0
+            for e in edges:
+                weight += e.weight
+
+            return False, conflicts, bounds, weight
+
+    return True, [], {}, 0

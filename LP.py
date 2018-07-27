@@ -1,11 +1,5 @@
-from stn import STN
-from stn import loadSTNfromJSONfile
+from util import *
 from pulp import *
-import math
-import json
-import glob
-import os
-import sys
 
 
 ##
