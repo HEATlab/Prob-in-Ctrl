@@ -1,5 +1,6 @@
 from stn import STN
 from stn import loadSTNfromJSONfile
+from algorithm import *
 import os
 import glob
 
@@ -9,6 +10,9 @@ import glob
 
 MAX_FLOAT = 10000000000
 
+# -------------------------------------------------------------------------
+# Strong controllability
+# -------------------------------------------------------------------------
 
 
 ##
@@ -158,6 +162,78 @@ def modelFile(path):
     modelObj(STN, fname)
 
 
+# -------------------------------------------------------------------------
+# Dynamic controllability
+# -------------------------------------------------------------------------
+
+##
+# \fn prepareDynamic(STN)
+# \brief extract all constraints, variables, and Objective function for the
+#        optimization problem of an STNU (degree of DC)
+#
+# @param STN        An STN to be processed
+#
+# @return A dictionary of epsilons variables and constraint, objective
+#         function string
+def prepareDynamic(STN):
+    epsilons = {}
+    result, conflicts, bounds, weight = DC_Checker(STN.copy())
+
+    contingent = bounds['contingent']
+
+    constraint = ''
+    Obj = ''
+    for i,j in list(contingent.keys()):
+        edge, bound = contingent[(i,j)]
+        length = edge.Cij + edge.Cji
+        epsilons[j] = ('EPS_%i'%j, 0, length)
+
+        constraint += epsilons[j][0] + ' + '
+        Obj += '(' + str(length) + ' - ' + epsilons[j][0] + ') * '
+
+    constraint = constraint[:-3] + ' >= ' + str(-weight)
+    Obj = Obj[:-3]
+
+    return epsilons, constraint, Obj
+
+
+
+##
+# \fn modelObjDynamic(STN, fname)
+# \brief convert an STN obj to AMPL format model file to use in the solver
+#        for compute degree of DC
+#
+# @param STN        An STN object to be processed
+# @param fname      The filename for the output model file
+#
+# @post An AMPL format model file that contains optimization problem for the
+#       input STN for computing degree of DC
+def modelObjDynamic(STN, fname):
+    epsilons, constraint, Obj = prepareDynamic(STN.copy())
+
+    f = open(fname, 'w')
+    for v, l, h in list(epsilons.values()):
+        line = 'var ' + v + ' >= ' + str(l)
+
+        if h != None:
+            line += ', <= ' + str(h)
+
+        line += ';'
+        f.write(line +'\n')
+
+    Obj_line = '\nmaximize VOLUME: ' + Obj + ';\n\n'
+    f.write(Obj_line)
+
+    constraint_line = 'subject to WEIGHT: ' + constraint + ';\n'
+    f.write(constraint_line)
+
+    f.close()
+
+
+
+# -------------------------------------------------------------------------
+#  Main function
+# -------------------------------------------------------------------------
 
 
 def main():
