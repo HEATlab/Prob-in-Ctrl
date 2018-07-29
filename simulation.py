@@ -88,7 +88,7 @@ def early_execution(network: STN, realization: dict) -> bool:
 # @return A bool, which is True if and only if the execution is successful
 def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     graph = minimize_stnu(make_graph(network))
-
+    print("\n\n", graph, "\n\n")
     ## Bookkeeping for events
     all_uncontrollables = set(network.uncontrollables)
     unused_events = set(network.verts.keys())
@@ -126,6 +126,10 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
         if verbose:
             print(event, "was scheduled at time", current_time)
 
+        if not safely_scheduled(network, final_schedule, event):
+            print("Dispatch failed.")
+            return False
+        
         # Add uncontrollables to queue
         if event in inactive_uncontrollables:
             uncontrolled = inactive_uncontrollables[event]
@@ -139,13 +143,8 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
                 if (edge.i == event) and (graph[event][edge.j] > 0):
                     new_time = current_time + graph[event][edge.j]
                     not_scheduled.addOrDecKey(edge.j, new_time) 
-
-    success = scheduleIsValid(network, final_schedule)
-    if verbose:
-        msg = "Dispatch was successful." if success else "Dispatch failed."
-        print(msg)
-    return success
-
+    print("Dispatch was successful.")
+    return True
 ##
 # \fn dispatch(network, sample_size, is_early)
 def dispatch(network: STN, sample_size: int, is_early: bool = False) -> float:
@@ -198,6 +197,33 @@ def needs_early_update(edge, fixed_event, fixed_value, planned_times):
     new_time = fixed_value - edge.Cij
     if new_time > planned_times[edge.i]:
         return True
+
+
+##
+# \fn safely_scheduled(network, partial, event)
+#
+# @param network      An input STNU
+# @param partial      A partial schedule, inputed as a dictionary from
+#                     event IDs to values
+# 
+# @return True if and only if the assigned value of event is consistent in
+#         the partial schedule
+def safely_scheduled(network: STN, partial: dict, event) -> bool:
+    assert (event in partial, "The given event does not belogn to the inputted"
+            " partial schedule!")
+    epsilon = 0.001
+    edges = network.getEdges(event)
+    for edge in edges:
+        if (edge.i in partial) and (edge.j in partial):
+            start, end = (edge.i, edge.j)
+            lBound, uBound = (-edge.Cji, edge.Cij)
+
+            boundedAbove = (partial[end] - partial[start]) <= uBound + epsilon
+            boundedBelow = (partial[end] - partial[start]) >= lBound - epsilon
+
+            if ((not boundedAbove) or (not boundedBelow)):
+                return False
+    return True
 
 # -------------------------------------------------------------------------
 #  Modify Networks
