@@ -89,12 +89,16 @@ def early_execution(network: STN, realization: dict) -> bool:
 def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     graph = minimize_stnu(make_graph(network))
     print("\n\n", graph, "\n\n")
+    print(network)
     ## Bookkeeping for events
     all_uncontrollables = set(network.uncontrollables)
     unused_events = set(network.verts.keys())
     not_scheduled = PriorityQueue()
     final_schedule = {}
-    
+
+    # Manually keeping track of priorities
+    priorities = {}
+
     # Mapping from contingent sources to uncontrollables
     contingent_pairs = network.contingentEdges.keys()
     inactive_uncontrollables = {src: sink for (src, sink) in contingent_pairs}
@@ -103,6 +107,7 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     for event in unused_events:
         if (event not in all_uncontrollables) and (event != ZERO_ID):
             not_scheduled.push(event, graph[ZERO_ID][event])
+            priorities[event] = graph[ZERO_ID][event]
 
     # Assume zero timepoint is removed first
     unused_events.remove(ZERO_ID)
@@ -111,6 +116,7 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     if ZERO_ID in inactive_uncontrollables:
         uncontrolled = inactive_uncontrollables[ZERO_ID]
         not_scheduled.push(uncontrolled, realization[uncontrolled])
+        priorities[uncontrolled] = realization[uncontrolled]
 
     if verbose:
         print("Queue initialized to: ")
@@ -121,6 +127,10 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
         print("The events that still have not been scheduled are: ")
         print(unused_events)
         current_time, event = not_scheduled.pop()
+        # Avoid scheduling early
+        if current_time != priorities[event]:
+            continue
+        
         final_schedule[event] = current_time
         unused_events.remove(event)
         if verbose:
@@ -135,6 +145,7 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
             uncontrolled = inactive_uncontrollables[event]
             delay = realization[uncontrolled]
             not_scheduled.push(uncontrolled, current_time + delay)
+            priorities[uncontrolled] = current_time + delay
 
         # See if any other events need to be scheduled earlier
         if event in all_uncontrollables:
@@ -142,7 +153,16 @@ def late_execution(network: STN, realization: dict, verbose = True) -> bool:
             for edge in edges:
                 if (edge.i == event) and (graph[event][edge.j] > 0):
                     new_time = current_time + graph[event][edge.j]
-                    not_scheduled.addOrDecKey(edge.j, new_time) 
+                    if new_time > priorities[edge.j]:
+                        # Case where something was scheduled too early
+                        if priorities[edge.j] == graph[ZERO_ID][edge.j]:
+                            priorities[edge.j] = new_time
+                            not_scheduled.push(edge.j, new_time)
+                    else:
+                        not_scheduled.addOrDecKey(edge.j, new_time) 
+
+        print("The queue now looks like: ")
+        print(not_scheduled.queue)
     print("Dispatch was successful.")
     return True
 ##
@@ -209,8 +229,7 @@ def needs_early_update(edge, fixed_event, fixed_value, planned_times):
 # @return True if and only if the assigned value of event is consistent in
 #         the partial schedule
 def safely_scheduled(network: STN, partial: dict, event) -> bool:
-    assert (event in partial, "The given event does not belogn to the inputted"
-            " partial schedule!")
+    assert event in partial, "Event not in partial schedule!"
     epsilon = 0.001
     edges = network.getEdges(event)
     for edge in edges:
@@ -222,6 +241,7 @@ def safely_scheduled(network: STN, partial: dict, event) -> bool:
             boundedBelow = (partial[end] - partial[start]) >= lBound - epsilon
 
             if ((not boundedAbove) or (not boundedBelow)):
+                print("Violated constraint", edge)
                 return False
     return True
 
@@ -360,4 +380,4 @@ print("We have network:", test_1)
 # print("With graph: \n", test_graph)
 # test_DP = minimize_stnu(test_graph)
 # print("\nWith DP table:", test_DP)
-simulate_once(test_1)
+dispatch(test_1, 10)
