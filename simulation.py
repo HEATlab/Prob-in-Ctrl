@@ -239,17 +239,13 @@ def set_dynamic_zeropoint(network: STN):
     network = network.copy()
     largish = 1000000.0
     
-    # Add a starting edge from the zero timepoint
-    if len(network.getEdges(ZERO_ID)) == 0:
-        if ZERO_ID not in network.verts:
-            network.addVertex(ZERO_ID)
-        
-        events = list(network.verts.keys())
-        for event in events:
-            if event != ZERO_ID:
-                network.addEdge(ZERO_ID, event, 0.0, largish)
-
-
+    if ZERO_ID not in network.verts:
+        network.addVertex(ZERO_ID)
+    
+    adjacent_events = set(network.getAdjacent(ZERO_ID))
+    for event in network.verts:
+        if (event not in adjacent_events) and (event != ZERO_ID):
+            network.addEdge(ZERO_ID, event, 0.0, largish)
 
     return network
 
