@@ -86,7 +86,7 @@ def early_execution(network: STN, realization: dict) -> bool:
 # @param realization   Dictionary from uncontrollables to contingent values
 # 
 # @return A bool, which is True if and only if the execution is successful
-def late_execution(network: STN, realization: dict, verbose = False) -> bool:
+def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     graph = minimize_stnu(make_graph(network))
 
     ## Bookkeeping for events
