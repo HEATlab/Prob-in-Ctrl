@@ -175,6 +175,44 @@ def relaxDeltaLP(bounds, weight, debug=False):
 
 
 ##
+# \fn optimalRelax(bounds, weight)
+# \brief optimal solution for compute relax strategy
+#
+# @param bounds       A dictionary of bounds we can relax to resolve conflict
+# @param weight       Weight of the semi-reducible negative cycle
+#
+# @return A dictionary of epsilons (amount of uncertain need to be
+#         removed from each contingent interval)
+def optimalRelax(bounds, weight):
+    contingent = [bounds['contingent'][x][0] for x in \
+                                list(bounds['contingent'].keys())]
+    contingent.sort(key=lambda x: x.Cij+x.Cji, reverse=False)
+
+    length = [e.Cij+e.Cji for e in contingent]
+    S = sum(length) + weight
+    n = len(contingent)
+    print(S)
+    if S < 0:
+        return None
+
+    m = None
+    for i in range(n):
+        previous = length[:i]
+        test_sum = sum(previous) + (n-i) * length[i]
+        if test_sum >= S:
+            m = i
+            break
+    print(m)
+
+    A = (S - sum(length[:m])) / (n-m)
+    epsilons = {}
+    for e in contingent[m:]:
+        epsilons[e.j] = e.Cij + e.Cji - A
+
+    return epsilons
+
+
+##
 # \fn relaxSearch(STN, nlp=True)
 # \brief run relaxation algorithm on an STNU so that it becomes dynamically
 #        controllable

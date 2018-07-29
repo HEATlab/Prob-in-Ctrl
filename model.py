@@ -189,7 +189,7 @@ def prepareDynamic(STN):
         epsilons[j] = ('EPS_%i'%j, 0, length)
 
         constraint += epsilons[j][0] + ' + '
-        Obj += '(' + str(length) + ' - ' + epsilons[j][0] + ') * '
+        Obj += 'log(' + str(length) + ' - ' + epsilons[j][0] + ') + '
 
     constraint = constraint[:-3] + ' >= ' + str(-weight)
     Obj = Obj[:-3]
@@ -231,6 +231,21 @@ def modelObjDynamic(STN, fname):
 
 
 
+##
+# \fn modelDynamicFile(path)
+# \brief extract model file from an STN json file
+# \note This function is used to compute degree of dynamic controllability
+#
+# @param path       The path to an STN json file
+#
+# @post An AMPL model file
+def modelDynamicFile(path):
+    STN = loadSTNfromJSONfile(path)
+    p, f = os.path.split(path)
+    fname = f[:-5] + '.mod'
+    fname = os.path.join('../../../model/dynamic/model', fname)
+    modelObjDynamic(STN, fname)
+
 # -------------------------------------------------------------------------
 #  Main function
 # -------------------------------------------------------------------------
@@ -243,7 +258,8 @@ def main():
     for path in listOfFile:
         p, f = os.path.split(path)
         print("Processing: ", f)
-        modelFile(path)
+        modelDynamicFile(path)
 
 if __name__ == '__main__':
     main()
+    print("hi")
