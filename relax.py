@@ -175,21 +175,26 @@ def relaxDeltaLP(bounds, weight, debug=False):
 
 
 ##
-# \fn relaxSearch(STN)
+# \fn relaxSearch(STN, nlp=True)
 # \brief run relaxation algorithm on an STNU so that it becomes dynamically
 #        controllable
 #
 # @param STN       An STNU we want to relax/process
+# @param nlp
 #
 # @return The dynamically controllable relaxed STNU and the number of conflict
 #         need to be resolved
-def relaxSearch(STN):
+def relaxSearch(STN, nlp=False):
     relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
     count = 0
     while not result:
-        status, epsilons = relaxNLP(bounds, weight)
+        if nlp:
+            status, epsilons = relaxNLP(bounds, weight)
+        else:
+            status, epsilons = relaxDeltaLP(bounds, weight)
+
         if status != 'Optimal':
             print("The STNU cannot resolve the conflict...")
             return None, 0

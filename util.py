@@ -94,7 +94,7 @@ def generateChain(task, free):
             type = 'stcu' if i % 2==0 else 'stc'
             if type == 'stcu':
                 lowBound = random.randint(0,50)
-                length = random.randint(0,50)
+                length = random.randint(1,50)
                 bounds.append((lowBound, lowBound+length))
                 new.addEdge(i, i+1, lowBound, lowBound+length, type='stcu')
             else:
@@ -108,7 +108,6 @@ def generateChain(task, free):
         makespan = random.randint(low, up)
         new.addEdge(0,task*2+1, 0, makespan)
 
-        print("Checking Consistensy...")
         if new.isConsistent():
             return new
 

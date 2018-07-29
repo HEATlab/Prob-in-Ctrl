@@ -2,6 +2,7 @@ from stn import STN
 from stn import loadSTNfromJSONfile
 from LP import *
 from relax import *
+from util import *
 import matplotlib.pyplot as plt
 import glob
 import json
@@ -334,38 +335,83 @@ def plot():
 # Dynamic controllability
 # -------------------------------------------------------------------------
 
-def checkRelax():
-    r = {}
-    r['Once'] = []
-    r['More'] = []
-    r['None'] = []
 
-    uncertain_folder = input("Please input directory with uncertain STNUs:\n")
-    L = glob.glob(os.path.join(uncertain_folder, '*.json'))
+##
+# \fn dynamicMetric(STN, new_STN)
+# \brief compute the degree of controllability
+#
+# @param STN        An input STNU
+# @param new_STN    Original STNU with contingent intervals shrinked to be DC
+#
+# @return degree of dynamic controllability
+def dynamicMetric(STN, new_STN):
+    original = [(-e.Cji, e.Cij) for e in list(STN.contingentEdges.values())]
+    shrinked = [(-e.Cji, e.Cij) for e in list(new_STN.contingentEdges.values())]
+    return calculateMetric(original, shrinked)
 
-    for x in L:
-        p, f = os.path.split(x)
+
+##
+# \fn computeDynamic(nlp=True)
+# \brief compute degree of controllability for all uncontrollable STNUs we have
+#
+# @param nlp        Flag indicating whether we want to use NLP
+#
+# @return A dictionary in which keys are names of the STNU json file and value
+#         is the degree of controllability
+def computeDynamic(nlp=False):
+    uncertain_folder = input("Please input uncertain STNUs folder:\n")
+    chain_folder = input("Please input chain STNUs folde:\n")
+
+    listOfFile = []
+    listOfFile += glob.glob(os.path.join(uncertain_folder, '*.json'))
+    listOfFile += glob.glob(os.path.join(chain_folder, '*.json'))
+
+    degree = {}
+    for fname in listOfFile:
+        p, f = os.path.split(fname)
         print("Processing: ", f)
 
-        STN = loadSTNfromJSONfile(x)
-        relaxedSTN, count = relaxSearch(STN.copy())
+        STN = loadSTNfromJSONfile(fname)
+        new_STN, count = relaxSearch(STN.copy(), nlp=nlp)
 
-        if not relaxedSTN:
-            r['None'].append(f)
+        if not new_STN:
+            degree[f] = 0
         else:
-            print(f, "relax {} times".format(count))
+            degree[f] = dynamicMetric(STN.copy(), new_STN.copy())[2]
 
-            if count != 1:
-                r['More'].append(f)
-            else:
-                r['Once'].append(f)
-
-    return r
+    return degree
 
 
 
+##
+# \fn generateData(num)
+# \brief generate uncontrollable STNUs with decent degree of dynamic
+#        controllability
+#
+# @param num    number of STNUs we want to generate
+def generateData(num):
+    data_folder = input("Please input destination directory:\n")
+    while num != 0:
+        new = generateChain(50, 2500)
+        result, conflicts, bounds, weight = DC_Checker(new.copy(), report=False)
 
+        if result:
+            print("Failed. Dynamically controllable...")
+            continue
 
+        new_STN, count = relaxSearch(new.copy(), nlp=False)
+        if not new_STN:
+            print("Failed. Not able to resolve conflict...")
+            continue
+
+        degree = dynamicMetric(new.copy(), new_STN.copy())[2]
+        if degree >= 0.2:
+            fname = 'new' + str(num) + '.json'
+            print("\nGENERATED ONE SUCCESSFUL CHAIN!!!!!!\n")
+            new.toJSON(fname, data_folder)
+            num -= 1
+        else:
+            print("Failed. Degree is too small....")
 
 
 # -------------------------------------------------------------------------
