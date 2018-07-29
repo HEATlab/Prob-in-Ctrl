@@ -107,6 +107,10 @@ def late_execution(network: STN, realization: dict, verbose = False) -> bool:
     # Assume zero timepoint is removed first
     unused_events.remove(ZERO_ID)
     final_schedule[ZERO_ID] = 0.0
+    # In case the zero timepoint is the source of some uncontrollables
+    if ZERO_ID in inactive_uncontrollables:
+        uncontrolled = inactive_uncontrollables[ZERO_ID]
+        not_scheduled.push(uncontrolled, realization[uncontrolled])
 
     if verbose:
         print("Queue initialized to: ")
@@ -114,6 +118,8 @@ def late_execution(network: STN, realization: dict, verbose = False) -> bool:
 
     while len(unused_events) > 0:
         # Schedule the next event
+        print("The events that still have not been scheduled are: ")
+        print(unused_events)
         current_time, event = not_scheduled.pop()
         final_schedule[event] = current_time
         unused_events.remove(event)
@@ -171,7 +177,7 @@ def simulate_once(network: STN, is_early: bool = False) -> bool:
     if is_early:
         return early_execution(network, realization)
     else:
-        return late_execution(network, realization)
+        return late_execution(network, realization, True)
 
 
 # -------------------------------------------------------------------------
@@ -242,6 +248,8 @@ def set_dynamic_zeropoint(network: STN):
         for event in events:
             if event != ZERO_ID:
                 network.addEdge(ZERO_ID, event, 0.0, largish)
+
+
 
     return network
 
@@ -330,4 +338,4 @@ print("We have network:", test_1)
 # print("With graph: \n", test_graph)
 # test_DP = minimize_stnu(test_graph)
 # print("\nWith DP table:", test_DP)
-dispatch(test_1, 10)
+simulate_once(test_1)
