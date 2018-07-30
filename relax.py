@@ -191,7 +191,6 @@ def optimalRelax(bounds, weight):
     length = [e.Cij+e.Cji for e in contingent]
     S = sum(length) + weight
     n = len(contingent)
-    print(S)
     if S < 0:
         return None
 
@@ -202,7 +201,6 @@ def optimalRelax(bounds, weight):
         if test_sum >= S:
             m = i
             break
-    print(m)
 
     A = (S - sum(length[:m])) / (n-m)
     epsilons = {}
