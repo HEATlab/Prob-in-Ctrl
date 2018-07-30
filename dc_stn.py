@@ -1,7 +1,8 @@
 ## \file dc_stn.py
 #  \brief An implementation of an STNU with dynamic controllability checking
 #  \note Read the Morris 2003 paper on dynamic controllability for more info on
-#    the algorithm used
+#    the algorithm used 
+# (https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf)
 
 
 
