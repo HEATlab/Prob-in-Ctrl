@@ -89,7 +89,6 @@ def early_execution(network: STN, realization: dict) -> bool:
 def late_execution(network: STN, realization: dict, verbose = True) -> bool:
     graph = minimize_stnu(make_graph(network))
     print("\n\n", graph, "\n\n")
-    print(network)
     ## Bookkeeping for events
     all_uncontrollables = set(network.uncontrollables)
     unused_events = set(network.verts.keys())
@@ -374,10 +373,10 @@ def minimize_stnu(graph):
     return minimized
 
 ### Testing
-test_1 = loadSTNfromJSONfile("stnudata/dynamic/dynamic3.json")
+test_1 = loadSTNfromJSONfile("stnudata/dynamic/dynamic4.json")
 print("We have network:", test_1)
 # test_graph = make_graph(test_1)
 # print("With graph: \n", test_graph)
 # test_DP = minimize_stnu(test_graph)
 # print("\nWith DP table:", test_DP)
-dispatch(test_1, 10)
+simulate_once(test_1)
