@@ -14,6 +14,7 @@ import random
 
 ZERO_ID = 0
 
+
 ##
 # \fn dispatch(network)
 def dispatch(network: STN) -> bool:
