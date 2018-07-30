@@ -34,6 +34,24 @@ class DC_Vertex:
     def isSpecial(self):
         return len(self.incoming_upper) != 0 or len(self.incoming_lower) != 0
 
+    def copy(self):
+        vertex = DC_Vertex(self.nodeID)
+
+        for edge in self.outgoing_normal:
+            vertex.outgoing_normal.append(edge.copy())
+        for edge in self.incoming_normal:
+            vertex.incoming_normal.append(edge.copy())
+        for edge in self.outgoing_upper:
+            vertex.outgoing_upper.append(edge.copy())
+        for edge in self.incoming_upper:
+            vertex.incoming_upper.append(edge.copy())
+        for edge in self.outgoing_lower:
+            vertex.outgoing_lower.append(edge.copy())
+        for edge in self.incoming_lower:
+            vertex.incoming_lower.append(edge.copy())
+
+        return vertex
+
 class DC_Edge:
     def __init__(self,i,j,weight,type=edgeType.NORMAL,parent=None,fake=False):
         self.i = i
@@ -47,7 +65,13 @@ class DC_Edge:
         s = ""
         return "Edge {} => {}, {}, Type: {}, Label: {}".format(self.i, self.j,
                             self.weight, self.type, self.parent)
-## \class DC_STN
+
+    def copy(self):
+        edge = DC_Edge(self.i, self.j, self.weight, 
+                self.type, self.parent, self.fake)
+        return edge
+
+ ## \class DC_STN
 #  \brief an implementation of an STN for determining dynamic controllability.
 class DC_STN(object):
     def __init__(self):
@@ -58,6 +82,20 @@ class DC_STN(object):
         self.upper_case_edges = {}
         self.lower_case_edges = {}
 
+    def copy(self):
+        new_dc_stn = DC_STN()
+        for k, v in self.verts.items():
+            new_dc_stn.verts[k] = v
+        for k, v in self.edges.items():
+            new_dc_stn.edges[k] = v
+        for k, v in self.normal_edges.items():
+            new_dc_stn.normal_edges[k] = v
+        for k, v in self.upper_case_edges.items():
+            new_dc_stn.upper_case_edges[k] = v
+        for k, v in self.lower_case_edges.items():
+            new_dc_stn.lower_case_edges[k] = v
+        return new_dc_stn
+    
     def __repr__(self):
         s = ""
         vert_ids = sorted(self.verts.keys())
