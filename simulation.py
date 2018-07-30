@@ -373,7 +373,8 @@ def minimize_stnu(graph):
     return minimized
 
 ### Testing
-test_1 = loadSTNfromJSONfile("stnudata/dynamic/dynamic4.json")
+# test_1 = loadSTNfromJSONfile("stnudata/dynamic/dynamic4.json")
+test_1 = loadSTNfromJSONfile("test.json")
 print("We have network:", test_1)
 # test_graph = make_graph(test_1)
 # print("With graph: \n", test_graph)
