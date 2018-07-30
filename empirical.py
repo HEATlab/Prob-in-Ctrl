@@ -415,6 +415,15 @@ def generateData(num):
 
 
 
+##
+# \fn readNeos(filename, json_folder)
+# \brief compute degree of dynamic controllability from the output file of
+#        Neos Server
+#
+# @param filename       The name of the input txt file
+# @json_folder          The directory containing STNUs we generated
+#
+# @return an STNU's volume of Omega and Omega' and the computed degree of DC
 def readNeos(filename, json_folder):
     f = open(filename, 'r')
     for i in range(3):
@@ -443,6 +452,13 @@ def readNeos(filename, json_folder):
     return actual, total, float(actual/total)
 
 
+##
+# \fn processNeos()
+# \brief compute degree of dynamic controllability from the output file of
+#        Neos Server for all new chains we generated
+#
+# @return A dictionary of dictionary with information about an STNU's
+#         volume of Omega and Omega', and the computed degree of DC
 def processNeos():
     txt_folder = input("Please input folder with txt Neos file:\n")
     json_folder = input("Please input folder with json file:\n")
@@ -470,6 +486,13 @@ def processNeos():
 
 
 
+##
+# \fn processOptimal()
+# \brief compute degree of dynamic controllability using the optimal solution
+#        for all new chains we generated
+#
+# @return A dictionary of dictionary with information about an STNU's
+#         volume of Omega and Omega', and the computed degree of DC
 def processOptimal():
     json_folder = input("Please input folder with json file:\n")
     json_list = glob.glob(os.path.join(json_folder, '*.json'))
