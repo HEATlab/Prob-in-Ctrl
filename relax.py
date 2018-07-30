@@ -213,38 +213,53 @@ def optimalRelax(bounds, weight):
 
 
 ##
-# \fn relaxSearch(STN, nlp=True)
+# \fn relaxSearch(STN)
 # \brief run relaxation algorithm on an STNU so that it becomes dynamically
 #        controllable
 #
 # @param STN       An STNU we want to relax/process
-# @param nlp
 #
 # @return The dynamically controllable relaxed STNU and the number of conflict
 #         need to be resolved
-def relaxSearch(STN, nlp=False):
+def relaxSearch(STN):
     relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
     count = 0
     while not result:
-        if nlp:
-            status, epsilons = relaxNLP(bounds, weight)
-        else:
-            status, epsilons = relaxDeltaLP(bounds, weight)
+        epsilons = optimalRelax(bounds, weight)
 
-        if status != 'Optimal':
+        if not epsilons:
             print("The STNU cannot resolve the conflict...")
             return None, 0
+        #
+        # if nlp:
+        #     status, epsilons = relaxNLP(bounds, weight)
+        # else:
+        #     status, epsilons = relaxDeltaLP(bounds, weight)
+        #
+        # if status != 'Optimal':
+        #     print("The STNU cannot resolve the conflict...")
+        #     return None, 0
+        #
+        # original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
+        #
+        # for i, j in changed:
+        #     x, y = shrinked[(i, j)]
+        #     if bounds['contingent'][(i, j)][1] == 'UPPER':
+        #         STN.modifyEdge(i, j, y)
+        #     else:
+        #         STN.modifyEdge(j, i, -x)
 
-        original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
+        for (i,j) in list(STN.contingentEdges.keys()):
+            if j not in list(epsilons.keys()):
+                continue
 
-        for i, j in changed:
-            x, y = shrinked[(i, j)]
+            edge = STN.contingentEdges[(i,j)]
             if bounds['contingent'][(i, j)][1] == 'UPPER':
-                STN.modifyEdge(i, j, y)
+                STN.modifyEdge(i, j, edge.Cij - epsilons[j])
             else:
-                STN.modifyEdge(j, i, -x)
+                STN.modifyEdge(j, i, edge.Cji - epsilons[j])
 
         count += 1
         result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)

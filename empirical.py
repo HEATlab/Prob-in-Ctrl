@@ -61,7 +61,7 @@ def calculateMetric(original, shrinked):
         a, b = shrinked[i]
         new *= (b-a)
 
-    return orig, new, float(new/orig)
+    return new, orig, float(new/orig)
 
 
 
@@ -412,6 +412,94 @@ def generateData(num):
             num -= 1
         else:
             print("Failed. Degree is too small....")
+
+
+
+def readNeos(filename, json_folder):
+    f = open(filename, 'r')
+    for i in range(3):
+        line = f.readline()
+
+    obj_value = float(line[17:])
+    actual = math.exp(obj_value)
+
+    p, f = os.path.split(filename)
+    fname = f[:-4] + '.json'
+    json_file = os.path.join(json_folder, fname)
+
+    STN = loadSTNfromJSONfile(json_file)
+    result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
+    contingent = bounds['contingent']
+
+    total = 1
+    for (i,j) in list(STN.contingentEdges.keys()):
+        edge = STN.contingentEdges[(i,j)]
+        length = edge.Cij + edge.Cji
+        total *= length
+
+        if (i,j) not in contingent:
+            actual *= length
+
+    return actual, total, float(actual/total)
+
+
+def processNeos():
+    txt_folder = input("Please input folder with txt Neos file:\n")
+    json_folder = input("Please input folder with json file:\n")
+
+    result = {}
+    text_L = glob.glob(os.path.join(txt_folder, '*.txt'))
+    for filename in text_L:
+        p, f = os.path.split(filename)
+        fname = f[:-4] + '.json'
+        print("Processing: ", fname)
+
+        new, orig, degree = readNeos(filename, json_folder)
+        result[fname] = {}
+        result[fname]['shrinked'] = new
+        result[fname]['original'] = orig
+        result[fname]['degree'] = degree
+
+    output_folder = input("Please input output folder:\n")
+    filename = os.path.join(output_folder, 'result_neos.json')
+
+    with open(filename, 'w') as f:
+        json.dump(result, f)
+
+    return result
+
+
+
+def processOptimal():
+    json_folder = input("Please input folder with json file:\n")
+    json_list = glob.glob(os.path.join(json_folder, '*.json'))
+
+    result = {}
+    for fname in json_list:
+        p, f = os.path.split(fname)
+        print("Processing: ", f)
+
+        STN = loadSTNfromJSONfile(fname)
+        new_STN, count = relaxSearch(STN.copy())
+        new, orig, degree = dynamicMetric(STN.copy(), new_STN.copy())
+
+        result[f] = {}
+        result[f]['shrinked'] = new
+        result[f]['original'] = orig
+        result[f]['degree'] = degree
+
+    output_folder = input("Please input output folder:\n")
+    filename = os.path.join(output_folder, 'result_optimal.json')
+
+    with open(filename, 'w') as f:
+        json.dump(result, f)
+
+    return result
+
+
+
+
+
 
 
 # -------------------------------------------------------------------------
