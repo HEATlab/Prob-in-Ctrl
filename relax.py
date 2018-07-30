@@ -175,38 +175,91 @@ def relaxDeltaLP(bounds, weight, debug=False):
 
 
 ##
-# \fn relaxSearch(STN, nlp=True)
+# \fn optimalRelax(bounds, weight)
+# \brief optimal solution for compute relax strategy
+#
+# @param bounds       A dictionary of bounds we can relax to resolve conflict
+# @param weight       Weight of the semi-reducible negative cycle
+#
+# @return A dictionary of epsilons (amount of uncertain need to be
+#         removed from each contingent interval)
+def optimalRelax(bounds, weight):
+    contingent = [bounds['contingent'][x][0] for x in \
+                                list(bounds['contingent'].keys())]
+    contingent.sort(key=lambda x: x.Cij+x.Cji, reverse=False)
+
+    length = [e.Cij+e.Cji for e in contingent]
+    S = sum(length) + weight
+    n = len(contingent)
+    print(S)
+    if S < 0:
+        return None
+
+    m = None
+    for i in range(n):
+        previous = length[:i]
+        test_sum = sum(previous) + (n-i) * length[i]
+        if test_sum >= S:
+            m = i
+            break
+    print(m)
+
+    A = (S - sum(length[:m])) / (n-m)
+    epsilons = {}
+    for e in contingent[m:]:
+        epsilons[e.j] = e.Cij + e.Cji - A
+
+    return epsilons
+
+
+##
+# \fn relaxSearch(STN)
 # \brief run relaxation algorithm on an STNU so that it becomes dynamically
 #        controllable
 #
 # @param STN       An STNU we want to relax/process
-# @param nlp
 #
 # @return The dynamically controllable relaxed STNU and the number of conflict
 #         need to be resolved
-def relaxSearch(STN, nlp=False):
+def relaxSearch(STN):
     relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
     count = 0
     while not result:
-        if nlp:
-            status, epsilons = relaxNLP(bounds, weight)
-        else:
-            status, epsilons = relaxDeltaLP(bounds, weight)
+        epsilons = optimalRelax(bounds, weight)
 
-        if status != 'Optimal':
+        if not epsilons:
             print("The STNU cannot resolve the conflict...")
             return None, 0
+        #
+        # if nlp:
+        #     status, epsilons = relaxNLP(bounds, weight)
+        # else:
+        #     status, epsilons = relaxDeltaLP(bounds, weight)
+        #
+        # if status != 'Optimal':
+        #     print("The STNU cannot resolve the conflict...")
+        #     return None, 0
+        #
+        # original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
+        #
+        # for i, j in changed:
+        #     x, y = shrinked[(i, j)]
+        #     if bounds['contingent'][(i, j)][1] == 'UPPER':
+        #         STN.modifyEdge(i, j, y)
+        #     else:
+        #         STN.modifyEdge(j, i, -x)
 
-        original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
+        for (i,j) in list(STN.contingentEdges.keys()):
+            if j not in list(epsilons.keys()):
+                continue
 
-        for i, j in changed:
-            x, y = shrinked[(i, j)]
+            edge = STN.contingentEdges[(i,j)]
             if bounds['contingent'][(i, j)][1] == 'UPPER':
-                STN.modifyEdge(i, j, y)
+                STN.modifyEdge(i, j, edge.Cij - epsilons[j])
             else:
-                STN.modifyEdge(j, i, -x)
+                STN.modifyEdge(j, i, edge.Cji - epsilons[j])
 
         count += 1
         result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)

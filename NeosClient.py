@@ -138,7 +138,6 @@ def getObjValue(xml_name, outfolder, username=None, \
 #     result = {}
 #     result['normal'] = {}
 #     result['unbounded'] = []
-#     result['killed'] = []
 #     result['waiting'] = []
 #     for fname in xml_L:
 #         p, f = os.path.split(fname)
@@ -147,8 +146,8 @@ def getObjValue(xml_name, outfolder, username=None, \
 #
 #
 #         print('hi')
-#         time.sleep(90)
-#         print('One and a half minutes passed...\n')
+#         time.sleep(60)
+#         print('One minute passed...\n')
 #
 #         if obj == 'waiting':
 #             result['waiting'].append(f)
