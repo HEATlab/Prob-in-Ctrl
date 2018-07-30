@@ -27,6 +27,9 @@ class DC_Vertex:
         self.outgoing_lower = []
         self.incoming_lower = []
 
+    def __repr__(self):
+        return f"Node {self.nodeID}"
+    
     def isSpecial(self):
         return len(self.incoming_upper) != 0 or len(self.incoming_lower) != 0
 
