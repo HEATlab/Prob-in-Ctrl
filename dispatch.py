@@ -2,8 +2,10 @@ from stn import STN, loadSTNfromJSONfile
 from util import STNtoDCSTN, PriorityQueue
 from dc_stn import DC_STN
 from empirical import scheduleIsValid
+import probability
 
 import random
+import json
 
 ##
 # \file dispatch.py
@@ -15,11 +17,23 @@ import random
 ZERO_ID = 0
 
 ##
+# \fn simulate_and_save(file_names)
+# \brief Keep track of dispatch results on networks
+def simulate_and_save(file_names: list, size: int, out_name: str):
+    rates = {}
+    # Loop through files and record the dispatch success rates and 
+    # approximated probabilities
+    for name in file_names:
+        success_rate = simulate_file(name, size)
+        rates[name] = success_rate
+
+    # Save the results
+
+##
 # \fn simulate_file(file_name, size)
 def simulate_file(file_name, size) -> float:
     network = loadSTNfromJSONfile(file_name)
     return simulation(network, size)
-
 
 ##
 # \fn simulation(network, size)
