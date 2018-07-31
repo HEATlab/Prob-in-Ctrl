@@ -204,19 +204,19 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     enabled.add(event)
                 # print("***")
 
-    # print("\n\nFinal schedule is: ")
-    # print(schedule)
+    print("\n\nFinal schedule is: ")
+    print(schedule)
     good = scheduleIsValid(network, schedule)
     msg = "We're good" if good else "We're dead"
     print(msg)
-    print("Schedule was: ")
-    for k, v in schedule.items():
-        # if k == 0:
-        if k != -1:
-            print(f"Event {k} was assigned time {v}")
-        else:
-            print(f"Event {k} occurred {v - schedule[k-1]} seconds"
-                    f" after event {k-1}.")
+    # print("Schedule was: ")
+    # for k, v in schedule.items():
+    #     # if k == 0:
+    #     if k != -1:
+    #         print(f"Event {k} was assigned time {v}")
+    #     else:
+    #         print(f"Event {k} occurred {v - schedule[k-1]} seconds"
+    #                 f" after event {k-1}.")
     return good
 
 ##
@@ -231,11 +231,11 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     # file_name = "stnudata/uncertain/uncertain6.json"
-    file_name = "stnudata/new_chain/new384.json"
-    # file_name = "test.json"
+    # file_name = "stnudata/new_chain/new384.json"
+    file_name = "test2.json"
     network = loadSTNfromJSONfile(file_name)
 
-    simulation(network, 50)
+    simulation(network, 100)
 
 if __name__ == "__main__":
     main()
