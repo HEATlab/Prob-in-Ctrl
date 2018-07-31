@@ -2,8 +2,6 @@ from stn import STN, loadSTNfromJSONfile
 from util import STNtoDCSTN, PriorityQueue
 from dc_stn import DC_STN
 from empirical import scheduleIsValid
-import probability
-
 import random
 import json
 
@@ -28,6 +26,7 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
         rates[name] = success_rate
 
     # Save the results
+    return 0
 
 ##
 # \fn simulate_file(file_name, size)
@@ -48,7 +47,7 @@ def simulation(network: STN, size: int) -> float:
     dc_network.addVertex(ZERO_ID)
 
     controllability = dc_network.is_DC()
-    # print("Finished checking DC...")
+    print("Finished checking DC...")
     
     # Running the simulation
     for j in range(size):
@@ -65,7 +64,7 @@ def simulation(network: STN, size: int) -> float:
         # print(dc_network)
         result = dispatch(network, copy, realization, 
                 contingents, uncontrollables)
-        # print("Completed a simulation.")
+        print("Completed a simulation.")
         if result:
             total_victories += 1
     
@@ -247,30 +246,22 @@ def generate_realization(network: STN) -> dict:
         realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
     return realization
 
-### Testing
-SAMPLE_SIZE = 5000
-rel_path = "stnudata/uncertain/"
-beg = "uncertain"
-end = ".json"
 
-# good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
-good_list = [30]
+def main():
+    ### Testing
+    SAMPLE_SIZE = 5
+    # rel_path = "stnudata/uncertain/"
+    # beg = "uncertain"
+    # end = ".json"
 
-file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+    # good_list = [30]
 
-for name in file_names:
-    res = simulate_file(name, SAMPLE_SIZE)
-    print(f"{name} has success rate {100*res}%.")
+     # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+
+    a_name = "test3.json"
+    res = simulate_file(a_name, SAMPLE_SIZE)
+    print(f"{a_name} has dispatch success rate  {100*res}%.")
 
 
-
-# def main():
-#     # file_name = "stnudata/uncertain/uncertain6.json"
-#     # file_name = "stnudata/new_chain/new384.json"
-#     file_name = "test2.json"
-#     network = loadSTNfromJSONfile(file_name)
-
-#     simulation(network, 100)
-
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

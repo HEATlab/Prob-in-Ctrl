@@ -63,13 +63,16 @@ beg = "uncertain"
 end = ".json"
 
 
-good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
-# good_list = [30]
+# good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
+good_list = [30]
 
-file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+# file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+a_name = "test3.json"
+res = prob_of_DC_file(a_name)
+print(f"{a_name} is expected to be successful {100*res}% of the time.")
 
-for name in file_names:
-    res = prob_of_DC_file(name)
-    print(f"{name} has degree of controllability {100*res}%.")
+# for name in file_names:
+#     res = prob_of_DC_file(name)
+#     print(f"{name} has success rate {100*res}%.")
     # network = loadSTNfromJSONfile(name)
     # print(f"Network has {len(network.uncontrollables)} uncontrollable events.")
