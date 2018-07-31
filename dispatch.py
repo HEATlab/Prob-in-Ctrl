@@ -16,23 +16,40 @@ ZERO_ID = 0
 
 
 ##
-# \fn dispatch(network)
-def dispatch(network: STN) -> bool:
-    ## For dealing with uncontrollables
-    realization = generate_realization(network)
+# \fn simulation(network, size)
+def simulation(network: STN, size: int) -> float:
+    total_victories = 0
+    dc_network = STNtoDCSTN(network)
+
+    # Some data useful from the original network
     contingent_pairs = network.contingentEdges.keys()
-    contingent_map = {src: sink for (src, sink) in contingent_pairs}
+    contingents = {src: sink for (src, sink) in contingent_pairs}
+
+    # Running the simulation
+    for j in range(size):
+        realization = generate_realization(network)
+        result = dispatch(network, dc_network.copy(), realization, contingents)
+        print("Completed a simulation.")
+        if result:
+            total_victories += 1
+    
+    return float(total_victories/size)
+
+##
+# \fn dispatch(network)
+def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
+        contingent_map: dict) -> bool:
+    ## For dealing with uncontrollables
     uncontrollable_events = set(contingent_map.values())
 
     # uncontrollable_times = PriorityQueue()
 
     ## Turn the STNU into the old class
-    dc_network = STNtoDCSTN(network)
     dc_network.addVertex(ZERO_ID)
 
     ## Modify the network
     controllability = dc_network.is_DC()
-    print(dc_network)
+    # print(dc_network)
 
     ## Dispatch the modified network
     # Assume we have a zero reference point
@@ -187,10 +204,11 @@ def generate_realization(network: STN) -> dict:
 
 
 def main():
-    # file_name = "stnudata/dynamic/dynamic112.json"
-    file_name = "test.json"
+    file_name = "stnudata/dynamic/dynamic112.json"
+    # file_name = "test.json"
     network = loadSTNfromJSONfile(file_name)
-    dispatch(network)
+
+    simulation(network, 10)
 
 if __name__ == "__main__":
     main()

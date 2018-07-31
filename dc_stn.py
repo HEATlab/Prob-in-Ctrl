@@ -85,15 +85,15 @@ class DC_STN(object):
     def copy(self):
         new_dc_stn = DC_STN()
         for k, v in self.verts.items():
-            new_dc_stn.verts[k] = v
+            new_dc_stn.verts[k] = v.copy()
         for k, v in self.edges.items():
-            new_dc_stn.edges[k] = v
+            new_dc_stn.edges[k] = [edge.copy() for edge in v]
         for k, v in self.normal_edges.items():
-            new_dc_stn.normal_edges[k] = v
+            new_dc_stn.normal_edges[k] = v.copy()
         for k, v in self.upper_case_edges.items():
-            new_dc_stn.upper_case_edges[k] = v
+            new_dc_stn.upper_case_edges[k] = v.copy()
         for k, v in self.lower_case_edges.items():
-            new_dc_stn.lower_case_edges[k] = v
+            new_dc_stn.lower_case_edges[k] = v.copy()
         return new_dc_stn
     
     def __repr__(self):
