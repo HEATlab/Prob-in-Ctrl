@@ -29,10 +29,14 @@ def simulation(network: STN, size: int) -> float:
 
     controllability = dc_network.is_DC()
     print("Finished checking DC...")
-
+    
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
+        print("*******")
+        print("The realization was ")
+        print(realization)
+        print("********")
         copy = dc_network.copy()
         # print("Made the copy.")
         # print("The copy looks like: ")
@@ -47,6 +51,12 @@ def simulation(network: STN, size: int) -> float:
     
     goodie = float(total_victories/size)
     print(f"Worked {100*goodie}% of the time.")
+    
+    if controllability:
+        print("It's dynamically controllable!")
+    else:
+        print("It is not dynamically controllable.")
+
     return goodie
 
 ##
@@ -199,6 +209,14 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
     good = scheduleIsValid(network, schedule)
     msg = "We're good" if good else "We're dead"
     print(msg)
+    print("Schedule was: ")
+    for k, v in schedule.items():
+        # if k == 0:
+        if k != -1:
+            print(f"Event {k} was assigned time {v}")
+        else:
+            print(f"Event {k} occurred {v - schedule[k-1]} seconds"
+                    f" after event {k-1}.")
     return good
 
 ##
@@ -212,11 +230,12 @@ def generate_realization(network: STN) -> dict:
 
 
 def main():
-    file_name = "stnudata/new_chains/new344.json"
+    # file_name = "stnudata/uncertain/uncertain6.json"
+    file_name = "stnudata/new_chain/new384.json"
     # file_name = "test.json"
     network = loadSTNfromJSONfile(file_name)
 
-    simulation(network, 100)
+    simulation(network, 50)
 
 if __name__ == "__main__":
     main()
