@@ -34,6 +34,12 @@ class DC_Vertex:
     def isSpecial(self):
         return len(self.incoming_upper) != 0 or len(self.incoming_lower) != 0
 
+    ##
+    # We might want to make this a better check later on
+    def __eq__(self, other):
+        same_name = self.nodeID == other.nodeID
+        return same_name
+    
     def copy(self):
         vertex = DC_Vertex(self.nodeID)
 
@@ -70,6 +76,16 @@ class DC_Edge:
         edge = DC_Edge(self.i, self.j, self.weight, 
                 self.type, self.parent, self.fake)
         return edge
+
+    def __eq__(self, other):
+        src   = self.i == other.i
+        snk   = self.j == other.j
+        wght  = self.weight == other.weight
+        types = self.type == other.type
+        prnt  = self.parent == self.parent
+        fake  = self.fake == other.fake
+
+        return src and snk and wght and types and prnt and fake
 
  ## \class DC_STN
 #  \brief an implementation of an STN for determining dynamic controllability.
@@ -126,30 +142,30 @@ class DC_STN(object):
                 if edge.type == edgeType.LOWER:
                     rev_low_edge = edge
 
-            if for_edge == None:
+            if for_edge is None:
                 for_edge = DC_Edge(None,None,float('inf'))
-            if rev_edge == None:
+            if rev_edge is None:
                 rev_edge = DC_Edge(None,None,float('inf'))
 
             spec_edges = [for_up_edge,rev_up_edge,for_low_edge,rev_low_edge]
-            if (for_edge.fake or rev_edge.fake) and all([e==None for e in spec_edges]):
+            if (for_edge.fake or rev_edge.fake) and all([e is None for e in spec_edges]):
                 continue
 
             #forward contingent edge
-            if for_low_edge != None and rev_up_edge != None:
+            if (not for_low_edge is None) and (not rev_up_edge is None):
                 s += "{} => {} : [{:.0f},{:.0f}] Contingent\n"\
                 .format(i,j,-rev_edge.weight,for_edge.weight)
             #reverse contingent edge
-            elif for_up_edge != None and rev_low_edge != None:
+            elif (not for_up_edge is None) and (not rev_low_edge is None):
                 s += "{} => {} : [{:.0f},{:.0f}] Contingent\n"\
                 .format(j,i,-for_edge.weight,rev_edge.weight)
             #forward wait
-            elif rev_up_edge != None:
+            elif (not rev_up_edge is None):
                 s += "{} => {} : [{:.0f},{:.0f}] <Wait ({}): {:.0f}>\n"\
                 .format(i,j,-rev_edge.weight,for_edge.weight,rev_up_edge.parent,
                               -rev_up_edge.weight)
             #reverse wait
-            elif for_up_edge != None:
+            elif (not for_up_edge is None):
                 s += "{} => {} : [{:.0f},{:.0f}] <Wait ({}): {:.0f}>\n"\
                 .format(j,i,-for_edge.weight,rev_edge.weight,for_up_edge.parent,
                               -for_up_edge.weight)

@@ -18,37 +18,44 @@ ZERO_ID = 0
 ##
 # \fn simulation(network, size)
 def simulation(network: STN, size: int) -> float:
-    total_victories = 0
-    dc_network = STNtoDCSTN(network)
-
     # Some data useful from the original network
     contingent_pairs = network.contingentEdges.keys()
     contingents = {src: sink for (src, sink) in contingent_pairs}
+    uncontrollables = set(contingents.values())
+
+    total_victories = 0
+    dc_network = STNtoDCSTN(network)
+    dc_network.addVertex(ZERO_ID)
+
+    controllability = dc_network.is_DC()
+    print("Finished checking DC...")
 
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
-        result = dispatch(network, dc_network.copy(), realization, contingents)
-        print("Completed a simulation.")
+        copy = dc_network.copy()
+        # print("Made the copy.")
+        # print("The copy looks like: ")
+        # print(copy)
+        # print("The original version looks like: ")
+        # print(dc_network)
+        result = dispatch(network, copy, realization, 
+                contingents, uncontrollables)
+        # print("Completed a simulation.")
         if result:
             total_victories += 1
     
-    return float(total_victories/size)
+    goodie = float(total_victories/size)
+    print(f"Worked {100*goodie}% of the time.")
+    return goodie
 
 ##
 # \fn dispatch(network)
 def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
-        contingent_map: dict) -> bool:
-    ## For dealing with uncontrollables
-    uncontrollable_events = set(contingent_map.values())
-
-    # uncontrollable_times = PriorityQueue()
-
-    ## Turn the STNU into the old class
-    dc_network.addVertex(ZERO_ID)
+        contingent_map: dict, uncontrollable_events) -> bool:
 
     ## Modify the network
-    controllability = dc_network.is_DC()
+    # controllability = dc_network.is_DC()
     # print(dc_network)
 
     ## Dispatch the modified network
@@ -189,9 +196,10 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
     # print("\n\nFinal schedule is: ")
     # print(schedule)
-    good = scheduleIsValid(network, schedule), "Invalid!"
+    good = scheduleIsValid(network, schedule)
     msg = "We're good" if good else "We're dead"
     print(msg)
+    return good
 
 ##
 # \fn generate_realization(network)
@@ -204,11 +212,11 @@ def generate_realization(network: STN) -> dict:
 
 
 def main():
-    file_name = "stnudata/dynamic/dynamic112.json"
+    file_name = "stnudata/new_chains/new344.json"
     # file_name = "test.json"
     network = loadSTNfromJSONfile(file_name)
 
-    simulation(network, 10)
+    simulation(network, 100)
 
 if __name__ == "__main__":
     main()
