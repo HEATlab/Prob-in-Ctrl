@@ -14,6 +14,12 @@ import random
 
 ZERO_ID = 0
 
+##
+# \fn simulate_file(file_name, size)
+def simulate_file(file_name, size) -> float:
+    network = loadSTNfromJSONfile(file_name)
+    return simulation(network, size)
+
 
 ##
 # \fn simulation(network, size)
@@ -28,15 +34,15 @@ def simulation(network: STN, size: int) -> float:
     dc_network.addVertex(ZERO_ID)
 
     controllability = dc_network.is_DC()
-    print("Finished checking DC...")
+    # print("Finished checking DC...")
     
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
-        print("*******")
-        print("The realization was ")
-        print(realization)
-        print("********")
+        # print("*******")
+        # print("The realization was ")
+        # print(realization)
+        # print("********")
         copy = dc_network.copy()
         # print("Made the copy.")
         # print("The copy looks like: ")
@@ -52,10 +58,10 @@ def simulation(network: STN, size: int) -> float:
     goodie = float(total_victories/size)
     print(f"Worked {100*goodie}% of the time.")
     
-    if controllability:
-        print("It's dynamically controllable!")
-    else:
-        print("It is not dynamically controllable.")
+    # if controllability:
+        # print("It's dynamically controllable!")
+    # else:
+       #  print("It is not dynamically controllable.")
 
     return goodie
 
@@ -204,11 +210,11 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     enabled.add(event)
                 # print("***")
 
-    print("\n\nFinal schedule is: ")
-    print(schedule)
+    # print("\n\nFinal schedule is: ")
+    # print(schedule)
     good = scheduleIsValid(network, schedule)
-    msg = "We're good" if good else "We're dead"
-    print(msg)
+    # msg = "We're good" if good else "We're dead"
+    # print(msg)
     # print("Schedule was: ")
     # for k, v in schedule.items():
     #     # if k == 0:
@@ -227,15 +233,30 @@ def generate_realization(network: STN) -> dict:
         realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
     return realization
 
+### Testing
+SAMPLE_SIZE = 5000
+rel_path = "stnudata/uncertain/"
+beg = "uncertain"
+end = ".json"
+
+# good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
+good_list = [30]
+
+file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+
+for name in file_names:
+    res = simulate_file(name, SAMPLE_SIZE)
+    print(f"{name} has success rate {100*res}%.")
 
 
-def main():
-    # file_name = "stnudata/uncertain/uncertain6.json"
-    # file_name = "stnudata/new_chain/new384.json"
-    file_name = "test2.json"
-    network = loadSTNfromJSONfile(file_name)
 
-    simulation(network, 100)
+# def main():
+#     # file_name = "stnudata/uncertain/uncertain6.json"
+#     # file_name = "stnudata/new_chain/new384.json"
+#     file_name = "test2.json"
+#     network = loadSTNfromJSONfile(file_name)
 
-if __name__ == "__main__":
-    main()
+#     simulation(network, 100)
+
+# if __name__ == "__main__":
+#     main()
