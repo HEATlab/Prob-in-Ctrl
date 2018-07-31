@@ -118,7 +118,7 @@ def resolveNovel(e, novel, preds):
 # @param D              A dictionary containing info about added vertices
 # @param report         Flag indicating whether to print message or not
 #
-# @return A dictionary containing information about the original constarints
+# @return A dictionary containing information about the original constraints
 #         in the original STNU that we can relax and whether LOWER or UPPER
 #         bound can be relaxed
 def getFinalResult(conflicts, STN, D, report=True):
