@@ -59,12 +59,7 @@ def prob_of_DC(network: STN) -> float:
     for nodes, edge in edge_dict.items():
         lengths.append(edge[0].getWeightMax() - edge[0].getWeightMin())
 
-    print("The bounds were", bounds)
-    print("The weight of the conflict was", neg_weight)
     S = sum(lengths) + neg_weight
-
-    print("From here we derived length array", lengths)
-    print("The associated S value is", S)
 
     return prob_small_sum(lengths, S)
 
@@ -89,7 +84,6 @@ def prob(network: STN) -> float:
             lengths.append(edge[0].Cij + edge[0].Cji)
 
         S = sum(lengths) + neg_weight
-        print(prob_small_sum(lengths, S))
         p *= prob_small_sum(lengths, S)
 
     return p
@@ -102,9 +96,11 @@ def main():
     end = ".json"
 
     rel_path = "stnudata/more_uncertain/"
-    # good_list = range(1, 48)
-    bad_set = {17}
-    good_list = [7]
+    good_list = range(1, 48)
+    # bad_set = {17}
+    # good_list = [7]
+    # good_list = range(1,32)
+    bad_set = set()
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
     for name in file_names:

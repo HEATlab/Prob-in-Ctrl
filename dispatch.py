@@ -13,6 +13,7 @@ import json
 #       https://pdfs.semanticscholar.org/0313/af826f45d090a63fd5d787c92321666115c8.pd
 
 ZERO_ID = 0
+LARGE_NUMBER = 1000000000000000
 
 ##
 # \fn simulate_and_save(file_names)
@@ -54,7 +55,22 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 
     controllability = dc_network.is_DC()
     # print("Finished checking DC...")
-    
+   
+    # If the network has a suspicious life, set it right
+    # (looks for inconsistency in one fixed edge)
+    ###########
+    verts = dc_network.verts.keys()
+    for vert in verts: 
+        if (vert, vert) in dc_network.edges:
+            # print("Checking", vert)
+            edge = dc_network.edges[vert, vert][0]
+            if edge.weight < 0:
+                dc_network.edges[(vert, vert)].remove(edge)
+                dc_network.verts[vert].outgoing_normal.remove(edge)
+                dc_network.verts[vert].incoming_normal.remove(edge)
+                del dc_network.normal_edges[(vert, vert)]
+    ###########
+
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
@@ -189,6 +205,9 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
         # Add newly enabled events
         for event in not_executed:
+            if verbose:
+                print("***")
+                print("Checking event", event)
             if (event not in enabled) and (event not in uncontrollable_events):
                 # Check if the event is enabled
                #  print("***")
@@ -201,6 +220,9 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     if edge.weight < 0:
                     #     print("Need to occur after", edge.j)
                         if edge.j not in executed:
+                            if verbose:
+                                print(event, "was not enabled because of", 
+                                        edge)
                             ready = False
                             break
                 
@@ -213,6 +235,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                   #       print("Need to occur after", edge.parent, "and", edge.j)
                         if label_wait and main_wait:
                             ready = False
+                            if verbose:
+                                print(event, "was not enabled because of", edge)
                             break
 
                 if ready:
@@ -262,18 +286,20 @@ def main():
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    # good_list = [1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,
-    #         20,22,23,25,26,28,30,31]
+    # good_list = range(1,32)
+    # bad_set = {10, 21, 24, 27, 29}
+    bad_set = set()
+    # good_list = [17]
 
-    # good_list = range(5,100)
-    good_list = range(1, 48)
-    good_list = [25]
-    bad_set = {17} 
-    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set] 
-    
+    good_list = range(25, 26)
+    # good_list = [25]
+    # bad_set = {17} 
+    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set] 
+    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
+
     for name in file_names:
+        print("At file", name, "...")
         simulate_file(name, SAMPLE_SIZE, verbose=True)
-
 
 if __name__ == "__main__":
     main()
