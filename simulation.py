@@ -1,6 +1,7 @@
 from util import PriorityQueue
 from stn import STN, loadSTNfromJSONfile
-from empirical import scheduleIsValid
+
+import empirical as emp
 import random
 
 ##
@@ -75,7 +76,7 @@ def early_execution(network: STN, realization: dict) -> bool:
         # Keep track of this for next iteration of loop
         old_time = current_time
     # Check if we dispatched succesfully
-    return scheduleIsValid(network, final_schedule)
+    return emp.scheduleIsValid(network, final_schedule)
 
 
 ##
@@ -240,7 +241,7 @@ def safely_scheduled(network: STN, partial: dict, event) -> bool:
             boundedBelow = (partial[end] - partial[start]) >= lBound - epsilon
 
             if ((not boundedAbove) or (not boundedBelow)):
-                print("Violated constraint", edge)
+                # print("Violated constraint", edge)
                 return False
     return True
 
@@ -372,12 +373,3 @@ def minimize_stnu(graph):
 
     return minimized
 
-### Testing
-# test_1 = loadSTNfromJSONfile("stnudata/dynamic/dynamic4.json")
-test_1 = loadSTNfromJSONfile("test.json")
-print("We have network:", test_1)
-# test_graph = make_graph(test_1)
-# print("With graph: \n", test_graph)
-# test_DP = minimize_stnu(test_graph)
-# print("\nWith DP table:", test_DP)
-simulate_once(test_1)
