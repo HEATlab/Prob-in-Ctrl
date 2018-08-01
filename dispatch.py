@@ -26,12 +26,17 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
         rates[name] = success_rate
 
     # Save the results
-    return 0
+    with open(out_name, 'w') as out_json:
+        out_json.dump(rates)
+    print("Results saved to", out_name)
 
 ##
 # \fn simulate_file(file_name, size)
-def simulate_file(file_name, size) -> float:
+def simulate_file(file_name, size, verbose = True) -> float:
     network = loadSTNfromJSONfile(file_name)
+    if verbose:
+        print("The original network:")
+        print(network)
     return simulation(network, size)
 
 ##
@@ -52,10 +57,10 @@ def simulation(network: STN, size: int) -> float:
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
-        # print("*******")
-        # print("The realization was ")
-        # print(realization)
-        # print("********")
+        print("*******")
+        print("The realization was ")
+        print(realization)
+        print("********")
         copy = dc_network.copy()
         # print("Made the copy.")
         # print("The copy looks like: ")
@@ -75,17 +80,12 @@ def simulation(network: STN, size: int) -> float:
         # print("It's dynamically controllable!")
     # else:
        #  print("It is not dynamically controllable.")
-
     return goodie
 
 ##
 # \fn dispatch(network)
 def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
         contingent_map: dict, uncontrollable_events) -> bool:
-
-    ## Modify the network
-    # controllability = dc_network.is_DC()
-    # print(dc_network)
 
     ## Dispatch the modified network
     # Assume we have a zero reference point
@@ -97,22 +97,28 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
     schedule = {}
 
     time_windows = {event: [0, float('inf')] for event in not_executed}
-
+    current_event = ZERO_ID
     # print("Beginning dispatch...")
     while len(not_executed) > 0:
         # Find next event to execute
         min_time = float('inf')
 
-        # print("\n\nNetwork looks like: ")
-        # print(dc_network)
+        print("\n\nNetwork looks like: ")
+        print(dc_network)
 
-        # print("Current time windows: ", time_windows)
-        # print("Currently enabled: ", enabled)
-        # print("Already executed: ", executed)
-        # print("Still needs to be executed: ", not_executed)
+        print("Current time windows: ", time_windows)
+        print("Currently enabled: ", enabled)
+        print("Already executed: ", executed)
+        print("Still needs to be executed: ", not_executed)
         
         # Pick an event to schedule
         for event in enabled:
+            lower_bound = time_windows[event][0]
+            if event in uncontrollable_events:
+                if lower_bound < min_time:
+                    min_time = lower_bound
+                    current_event = event
+            else:
                 # Check that the wait constraints on the event are satisfied
                 waits = dc_network.verts[event].outgoing_upper
                 lower_bound = time_windows[event][0]
@@ -120,6 +126,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 for edge in waits:
                     if edge.parent != event:
                         if (edge.parent not in executed):
+                            if edge.j not in executed:
+                                continue
                             lower_bound = max(lower_bound, 
                                     schedule[edge.j] - edge.weight)
                 
@@ -130,34 +138,19 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
         is_uncontrollable = current_event in uncontrollable_events
 
-        # print("We are scheduling event", current_event, "at time", min_time)
-       #  if is_uncontrollable:
-            # print("This event is uncontrollable!!!")
+        print("We are scheduling event", current_event, "at time", min_time)
+        if is_uncontrollable:
+            print("This event is uncontrollable!!!")
         current_time = min_time
         schedule[current_event] = current_time
-
-        # # Check to see if any uncontrollable events should occur before this
-        # if not uncontrollable_times.isEmpty():
-        #     other_min, event = uncontrollable_times.pop()
-        #     if other_min < min_time:
-        #         # Update the current event
-        #         min_time = other_min
-        #         current_event = event
-        #         is_uncontrollable = True
-        #     else:
-        #         # Push it back on the queue
-        #         uncontrollable_times.push(event, other_min)
 
         # If the executed event was a contingent source
         if current_event in contingent_map:
             uncontrollable = contingent_map[current_event]
             delay = realization[uncontrollable]
             set_time = current_time + delay
-            # uncontrollable_times.push(uncontrollable, set_time)
             enabled.add(uncontrollable)
             time_windows[uncontrollable] = [set_time, set_time]
-
-
 
         if is_uncontrollable:
             # Remove waits
@@ -223,8 +216,14 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     enabled.add(event)
                 # print("***")
 
-    # print("\n\nFinal schedule is: ")
-    # print(schedule)
+    # The realization should have been preserved
+    # for src, sink in contingent_map:
+
+    
+    print("\n\nFinal schedule is: ")
+    print(schedule)
+    print("Network is: ")
+    print(network)
     good = scheduleIsValid(network, schedule)
     # msg = "We're good" if good else "We're dead"
     # print(msg)
@@ -249,18 +248,17 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 5
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    # end = ".json"
+    SAMPLE_SIZE = 5000
+    rel_path = "stnudata/uncertain/"
+    beg = "uncertain"
+    end = ".json"
 
-    # good_list = [30]
+    # good_list = list(range(1,32))
+    good_list = [1, 2, 3, 4, 5]
 
-     # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
-
-    a_name = "test3.json"
-    res = simulate_file(a_name, SAMPLE_SIZE)
-    print(f"{a_name} has dispatch success rate  {100*res}%.")
+    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+    for name in file_names:
+        simulate_file(name, SAMPLE_SIZE)
 
 
 if __name__ == "__main__":
