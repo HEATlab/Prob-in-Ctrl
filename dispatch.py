@@ -43,7 +43,8 @@ def simulate_file(file_name, size, verbose = False) -> float:
     #     print("The original network:")
     #     print(network)
     result = simulation(network, size, verbose)
-    print(f"{file_name} worked {100*result}% of the time.")
+    if verbose:
+        print(f"{file_name} worked {100*result}% of the time.")
 
 ##
 # \fn simulation(network, size)
@@ -299,7 +300,7 @@ def main():
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    good_list = range(48, 133)
+    good_list = range(133, 139)
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
