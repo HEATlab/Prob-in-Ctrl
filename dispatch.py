@@ -34,10 +34,12 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 # \fn simulate_file(file_name, size)
 def simulate_file(file_name, size, verbose = True) -> float:
     network = loadSTNfromJSONfile(file_name)
+    # if verbose:
+    #     print("The original network:")
+    #     print(network)
+    result = simulation(network, size)
     if verbose:
-        print("The original network:")
-        print(network)
-    return simulation(network, size)
+        print(f"{file_name} worked {100*result}% of the time.")
 
 ##
 # \fn simulation(network, size)
@@ -52,15 +54,15 @@ def simulation(network: STN, size: int) -> float:
     dc_network.addVertex(ZERO_ID)
 
     controllability = dc_network.is_DC()
-    print("Finished checking DC...")
+    # print("Finished checking DC...")
     
     # Running the simulation
     for j in range(size):
         realization = generate_realization(network)
-        print("*******")
-        print("The realization was ")
-        print(realization)
-        print("********")
+        # print("*******")
+        # print("The realization was ")
+        # print(realization)
+        # print("********")
         copy = dc_network.copy()
         # print("Made the copy.")
         # print("The copy looks like: ")
@@ -69,12 +71,12 @@ def simulation(network: STN, size: int) -> float:
         # print(dc_network)
         result = dispatch(network, copy, realization, 
                 contingents, uncontrollables)
-        print("Completed a simulation.")
+        # print("Completed a simulation.")
         if result:
             total_victories += 1
     
     goodie = float(total_victories/size)
-    print(f"Worked {100*goodie}% of the time.")
+    # print(f"Worked {100*goodie}% of the time.")
     
     # if controllability:
         # print("It's dynamically controllable!")
@@ -85,7 +87,7 @@ def simulation(network: STN, size: int) -> float:
 ##
 # \fn dispatch(network)
 def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
-        contingent_map: dict, uncontrollable_events) -> bool:
+        contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
     ## Dispatch the modified network
     # Assume we have a zero reference point
@@ -103,13 +105,14 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         # Find next event to execute
         min_time = float('inf')
 
-        print("\n\nNetwork looks like: ")
-        print(dc_network)
+        if verbose:
+            print("\n\nNetwork looks like: ")
+            print(dc_network)
 
-        print("Current time windows: ", time_windows)
-        print("Currently enabled: ", enabled)
-        print("Already executed: ", executed)
-        print("Still needs to be executed: ", not_executed)
+            print("Current time windows: ", time_windows)
+            print("Currently enabled: ", enabled)
+            print("Already executed: ", executed)
+            print("Still needs to be executed: ", not_executed)
         
         # Pick an event to schedule
         for event in enabled:
@@ -138,9 +141,10 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
         is_uncontrollable = current_event in uncontrollable_events
 
-        print("We are scheduling event", current_event, "at time", min_time)
-        if is_uncontrollable:
-            print("This event is uncontrollable!!!")
+        if verbose:
+            print("We are scheduling event", current_event, "at time", min_time)
+            if is_uncontrollable:
+                print("This event is uncontrollable!!!")
         current_time = min_time
         schedule[current_event] = current_time
 
@@ -219,11 +223,11 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
     # The realization should have been preserved
     # for src, sink in contingent_map:
 
-    
-    print("\n\nFinal schedule is: ")
-    print(schedule)
-    print("Network is: ")
-    print(network)
+    if verbose:
+        print("\n\nFinal schedule is: ")
+        print(schedule)
+        print("Network is: ")
+        print(network)
     good = scheduleIsValid(network, schedule)
     # msg = "We're good" if good else "We're dead"
     # print(msg)
@@ -248,7 +252,7 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 5000
+    SAMPLE_SIZE = 10000
     rel_path = "stnudata/uncertain/"
     beg = "uncertain"
     end = ".json"
