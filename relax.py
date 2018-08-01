@@ -228,12 +228,11 @@ def relaxSearch(STN):
     cycles = []
     while not result:
         cycles.append((bounds, weight))
-        print("hi")
         epsilons = optimalRelax(bounds, weight)
 
         if not epsilons:
             print("The STNU cannot resolve the conflict...")
-            return None, 0
+            return None, 0, None
         #
         # if nlp:
         #     status, epsilons = relaxNLP(bounds, weight)
