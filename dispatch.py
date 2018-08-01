@@ -5,6 +5,10 @@ import empirical
 import random
 import json
 
+
+# For faster checking, recently added (just for safely_scheduled)
+import simulation as sim
+
 ##
 # \file dispatch.py
 # \brief Hosts method to dispatch STNUs that were modified by the
@@ -85,7 +89,7 @@ def simulation(network: STN, size: int, verbose = False) -> float:
         # print("The original version looks like: ")
         # print(dc_network)
         result = dispatch(network, copy, realization, 
-                contingents, uncontrollables, verbose)
+                contingents, uncontrollables, False)
         # print("Completed a simulation.")
         if result:
             total_victories += 1
@@ -162,6 +166,15 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 print("This event is uncontrollable!!!")
         current_time = min_time
         schedule[current_event] = current_time
+
+        # Quicker check for scheduling errors
+        if not sim.safely_scheduled(network, schedule, current_event):
+            if verbose:
+                print("Failed -- event", current_event, "violated a constraint.")
+                print(f"At this time, we still had {len(not_executed)} " 
+                        f"out of {len(dc_network.verts)} events left to schedule")
+                verbose = False
+            return False
 
         # If the executed event was a contingent source
         if current_event in contingent_map:
@@ -251,18 +264,19 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         print(schedule)
         print("Network is: ")
         print(network)
-    good = empirical.scheduleIsValid(network, schedule)
-    # msg = "We're good" if good else "We're dead"
-    # print(msg)
-    # print("Schedule was: ")
-    # for k, v in schedule.items():
-    #     # if k == 0:
-    #     if k != -1:
-    #         print(f"Event {k} was assigned time {v}")
-    #     else:
-    #         print(f"Event {k} occurred {v - schedule[k-1]} seconds"
-    #                 f" after event {k-1}.")
-    return good
+    # good = empirical.scheduleIsValid(network, schedule)
+    # # msg = "We're good" if good else "We're dead"
+    # # print(msg)
+    # # print("Schedule was: ")
+    # # for k, v in schedule.items():
+    # #     # if k == 0:
+    # #     if k != -1:
+    # #         print(f"Event {k} was assigned time {v}")
+    # #     else:
+    # #         print(f"Event {k} occurred {v - schedule[k-1]} seconds"
+    # #                 f" after event {k-1}.")
+    # return good
+    return True
 
 ##
 # \fn generate_realization(network)
@@ -275,23 +289,23 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 1
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    beg = "new_uncertain"
+    SAMPLE_SIZE = 1000
+    rel_path = "stnudata/uncertain/"
+    beg = "uncertain"
+    # beg = "new_uncertain"
     end = ".json"
 
-    rel_path = "stnudata/more_uncertain/"
+    # rel_path = "stnudata/more_uncertain/"
 
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    # good_list = range(1,32)
+    good_list = range(1,32)
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
 
-    good_list = range(25, 26)
+    # good_list = range(1, 48)
     # good_list = [25]
     # bad_set = {17} 
     # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set] 
@@ -299,7 +313,7 @@ def main():
 
     for name in file_names:
         print("At file", name, "...")
-        simulate_file(name, SAMPLE_SIZE, verbose=True)
+        simulate_file(name, SAMPLE_SIZE, verbose=False)
 
 if __name__ == "__main__":
     main()
