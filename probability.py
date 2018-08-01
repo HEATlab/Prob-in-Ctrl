@@ -85,32 +85,6 @@ def prob_of_DC(network: STN) -> float:
 
     return prob_small_sum(lengths, S)
 
-
-def prob(network: STN) -> float:
-    _, _, cycles = relaxSearch(network.copy())
-
-    if cycles == None:
-        print("Cannot resolve...")
-        return False
-
-    if cycles == []:
-        print("It's controllable tho!")
-        return False
-
-    p = 1
-    for bounds, neg_weight in cycles:
-        edge_dict = bounds['contingent']
-
-        lengths = []
-        for nodes, edge in edge_dict.items():
-            lengths.append(edge[0].Cij + edge[0].Cji)
-
-        S = sum(lengths) + neg_weight
-        p *= prob_small_sum(lengths, S)
-
-    return p
-
-
 def main():
     # rel_path = "stnudata/uncertain/"
     # beg = "uncertain"
