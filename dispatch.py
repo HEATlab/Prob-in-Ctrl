@@ -32,18 +32,17 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 
 ##
 # \fn simulate_file(file_name, size)
-def simulate_file(file_name, size, verbose = True) -> float:
+def simulate_file(file_name, size, verbose = False) -> float:
     network = loadSTNfromJSONfile(file_name)
     # if verbose:
     #     print("The original network:")
     #     print(network)
-    result = simulation(network, size)
-    if verbose:
-        print(f"{file_name} worked {100*result}% of the time.")
+    result = simulation(network, size, verbose)
+    print(f"{file_name} worked {100*result}% of the time.")
 
 ##
 # \fn simulation(network, size)
-def simulation(network: STN, size: int) -> float:
+def simulation(network: STN, size: int, verbose = False) -> float:
     # Some data useful from the original network
     contingent_pairs = network.contingentEdges.keys()
     contingents = {src: sink for (src, sink) in contingent_pairs}
@@ -70,7 +69,7 @@ def simulation(network: STN, size: int) -> float:
         # print("The original version looks like: ")
         # print(dc_network)
         result = dispatch(network, copy, realization, 
-                contingents, uncontrollables)
+                contingents, uncontrollables, verbose)
         # print("Completed a simulation.")
         if result:
             total_victories += 1
@@ -252,17 +251,28 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 10000
-    rel_path = "stnudata/uncertain/"
-    beg = "uncertain"
+    SAMPLE_SIZE = 500
+    # rel_path = "stnudata/uncertain/"
+    # beg = "uncertain"
     end = ".json"
 
-    # good_list = list(range(1,32))
-    good_list = [1, 2, 3, 4, 5]
+    rel_path = "stnudata/dynamic/"
+    beg = "dynamic"
 
-    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
-    for name in file_names:
-        simulate_file(name, SAMPLE_SIZE)
+
+    # good_list = list(range(1,32))
+    # BAD: 10, 21, 24, 27, 29
+    # good_list = [1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,
+    #         20,22,23,25,26,28,30,31]
+
+    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+    good_list = range(5,100)
+    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list] 
+    
+    # for name in file_names:
+    #     simulate_file(name, SAMPLE_SIZE)
+    a_name = "test4.json"
+    simulate_file(a_name, 10, True)
 
 
 if __name__ == "__main__":
