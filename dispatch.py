@@ -289,18 +289,17 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 1000
-    rel_path = "stnudata/uncertain/"
-    beg = "uncertain"
-    # beg = "new_uncertain"
+    SAMPLE_SIZE = 800
+    # rel_path = "stnudata/uncertain/"
+    # beg = "uncertain"
+    beg = "new_uncertain"
     end = ".json"
 
-    # rel_path = "stnudata/more_uncertain/"
-
+    rel_path = "stnudata/more_uncertain/"
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    good_list = range(1,32)
+    good_list = range(48, 133)
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
@@ -312,7 +311,6 @@ def main():
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
     for name in file_names:
-        print("At file", name, "...")
         simulate_file(name, SAMPLE_SIZE, verbose=False)
 
 if __name__ == "__main__":

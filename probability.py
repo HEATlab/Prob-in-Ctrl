@@ -112,16 +112,16 @@ def prob(network: STN) -> float:
 
 
 def main():
-    rel_path = "stnudata/uncertain/"
-    beg = "uncertain"
-    # beg = "new_uncertain"
+    # rel_path = "stnudata/uncertain/"
+    # beg = "uncertain"
+    beg = "new_uncertain"
     end = ".json"
 
-    # rel_path = "stnudata/more_uncertain/"
-    # good_list = range(1, 48)
+    rel_path = "stnudata/more_uncertain/"
+    good_list = range(48, 133)
     # bad_set = {17}
     # good_list = [7]
-    good_list = range(1,32)
+    # good_list = range(1,32)
     bad_set = set()
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
