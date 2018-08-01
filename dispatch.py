@@ -1,7 +1,7 @@
 from stn import STN, loadSTNfromJSONfile
 from util import STNtoDCSTN, PriorityQueue
 from dc_stn import DC_STN
-from empirical import scheduleIsValid
+import empirical
 import random
 import json
 
@@ -227,7 +227,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         print(schedule)
         print("Network is: ")
         print(network)
-    good = scheduleIsValid(network, schedule)
+    good = empirical.scheduleIsValid(network, schedule)
     # msg = "We're good" if good else "We're dead"
     # print(msg)
     # print("Schedule was: ")
@@ -251,13 +251,13 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 500
+    SAMPLE_SIZE = 1
     # rel_path = "stnudata/uncertain/"
     # beg = "uncertain"
+    beg = "new_uncertain"
     end = ".json"
 
-    rel_path = "stnudata/dynamic/"
-    beg = "dynamic"
+    rel_path = "stnudata/more_uncertain/"
 
 
     # good_list = list(range(1,32))
@@ -265,14 +265,14 @@ def main():
     # good_list = [1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,
     #         20,22,23,25,26,28,30,31]
 
-    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
-    good_list = range(5,100)
-    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list] 
+    # good_list = range(5,100)
+    good_list = range(1, 48)
+    good_list = [25]
+    bad_set = {17} 
+    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set] 
     
-    # for name in file_names:
-    #     simulate_file(name, SAMPLE_SIZE)
-    a_name = "test4.json"
-    simulate_file(a_name, 10, True)
+    for name in file_names:
+        simulate_file(name, SAMPLE_SIZE, verbose=True)
 
 
 if __name__ == "__main__":
