@@ -3,7 +3,8 @@ from stn import STN, loadSTNfromJSONfile
 from relax import relaxSearch
 
 from scipy.stats import norm
-from math import sqrt
+from math import sqrt, log, exp
+from typing import List
 
 ##
 # \file probability.py
@@ -35,7 +36,18 @@ def prob_small_sum(lengths: list, S: float) -> float:
 
 ##
 # \fn special_prob()
+# \brief Returns the closed form answer that should only work in a special case.
 def special_prob(lengths: list, S: float) -> float:
+    n = len(lengths)
+    # Get the logarithm of the relevant expression
+    numerator = n * log(sum(lengths))
+
+    log_lengths = [log(l) for l in lengths]
+    log_factorial = [log(m) for m in range(1, n+1)]
+    denominator = sum(log_lengths) + sum(log_factorial)
+
+    log_prob = numerator - denominator
+    true_prob = exp(log_prob)
     return 0.0
 
 ##
@@ -43,6 +55,16 @@ def special_prob(lengths: list, S: float) -> float:
 def prob_of_DC_file(file_name: str) -> float:
     network = loadSTNfromJSONfile(file_name)
     return prob_of_DC(network)
+
+def prob_of_multiple_conflicts(lengths_list: List[list], weights: List[float]):
+    probability = 1.0
+    m = len(lengths_list)
+    assert len(weights) == m, "The input lists have different lengths!"
+
+    for j in range(m):
+        probability = probability * (prob_small_sum(lengths_list[j], weights[j]))
+
+    return probability
 
 ##
 # \fn prob_of_DC()
@@ -90,16 +112,16 @@ def prob(network: STN) -> float:
 
 
 def main():
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    beg = "new_uncertain"
+    rel_path = "stnudata/uncertain/"
+    beg = "uncertain"
+    # beg = "new_uncertain"
     end = ".json"
 
-    rel_path = "stnudata/more_uncertain/"
-    good_list = range(1, 48)
+    # rel_path = "stnudata/more_uncertain/"
+    # good_list = range(1, 48)
     # bad_set = {17}
     # good_list = [7]
-    # good_list = range(1,32)
+    good_list = range(1,32)
     bad_set = set()
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
