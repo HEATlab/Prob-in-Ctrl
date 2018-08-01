@@ -1,5 +1,7 @@
 import math
 import json
+# For testing
+# import time
 
 ## \file stntools.py
 #  \brief tools for working with STNs
@@ -755,9 +757,47 @@ class STN(object):
     # @return Returns true if the given STN is consistent. Otherwise, returns
     #         False
     def isConsistent(self):
+        # start = time.time()
+        # res = self.minimal() != None
+        # end = time.time()
+        # print(end - start)
         return self.minimal() != None
 
+    ##
+    # \fn altConsistent(self)
+    # 
+    # Uses Floyd Warshall to check for consistency. Is hopefull quicker than the
+    # the old isConsistent function.
+    def altConsistent(self):
+        # start = time.time()
+        # Number of vertices
+        events = list(self.verts.keys())
+        n = len(events)
 
+        # Initialize table
+        dp = {}
+        for i in events:
+            for j in events:
+                dp[i, j] = self.getEdgeWeight(i, j)
+
+        # Future entries
+        for k in range(1,n+1):
+            for i in events:
+                for j in events:
+                    mid = events[k-1]
+                    new_weight = dp[i,mid] + dp[mid,j]
+                    if new_weight < dp[i,j]:
+                        dp[i,j] = new_weight
+
+            for i in events:
+                if dp[i,i] < 0:
+                    # end = time.time()
+                    # print(end - start)
+                    return False
+
+        # end = time.time()
+        # print(start - end)
+        return True
 
 
     ##
