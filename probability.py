@@ -64,10 +64,15 @@ end = ".json"
 
 
 # good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
-good_list = [1, 2, 3, 4 ,5]
-
+good_list = [1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,
+            20,22,23,25,26,28,30,31]
 file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
 
-for name in file_names:
-    res = prob_of_DC_file(name)
-    print(f"{name} has expected success rate {100*res}%.")
+# for name in file_names:
+#     res = prob_of_DC_file(name)
+#     print(f"{name} has expected success rate {100*res}%.")
+
+a_name = "test4.json"
+res = prob_of_DC_file(a_name)
+print(f"{a_name} has expected success rate {100*res}%.")
+
