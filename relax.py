@@ -223,8 +223,12 @@ def relaxSearch(STN):
     relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
+
     count = 0
+    cycles = []
     while not result:
+        cycles.append((bounds, weight))
+        print("hi")
         epsilons = optimalRelax(bounds, weight)
 
         if not epsilons:
@@ -262,4 +266,4 @@ def relaxSearch(STN):
         count += 1
         result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
-    return STN, count
+    return STN, count, cycles

@@ -3,6 +3,8 @@ from stn import loadSTNfromJSONfile
 from LP import *
 from relax import *
 from util import *
+from dispatch import *
+from probability import *
 import matplotlib.pyplot as plt
 import glob
 import json
@@ -521,7 +523,136 @@ def processOptimal():
 
 
 
+# -------------------------------------------------------------------------
+# Generate STNU
+# -------------------------------------------------------------------------
 
+##
+# \fn generateChain(task, free)
+# \brief generate a consistent STNUs in a chainlike structure
+#
+# \details The chainlike STNU is very common in real life application, such as
+#          AUV need to drive to different sites and complete task at each site.
+#          Driving to different cite is contingent, but the agent can decide
+#          how long it takes to complete the task.
+#
+# @param task  The number of tasks need to be completed
+# @param free  The total length of the free constraint intervals we want
+#              in the generated STNU
+#
+# @return Return the generated STNU
+def generateChain(task, free):
+    totalEvent = 2 * (task+1)
+
+    while True:
+        new = STN()
+        for i in range(totalEvent):
+            new.addVertex(i)
+
+        L = [random.randint(0, 100) for i in range(task)]
+        s = sum(L)
+        L = [int(x/s*free) for x in L]
+        diff = free - sum(L)
+        L[-1] += diff
+
+        bounds = []
+        for i in range(totalEvent-1):
+            type = 'stcu' if i % 2==0 else 'stc'
+            if type == 'stcu':
+                lowBound = random.randint(0,50)
+                length = random.randint(1,50)
+                bounds.append((lowBound, lowBound+length))
+                new.addEdge(i, i+1, lowBound, lowBound+length, type='stcu')
+            else:
+                lowBound = random.randint(0,100)
+                length = L[int((i-1)/2)]
+                bounds.append((lowBound, lowBound+length))
+                new.addEdge(i, i+1, lowBound, lowBound+length)
+
+        low = sum([x[0] for x in bounds])
+        high = sum([x[1] for x in bounds])
+        S = sum([e.Cij+e.Cji for e in list(new.contingentEdges.values())])
+        # makespan = random.randint(int(0.5*low), low)
+        makespan = low + int(0.6*S)
+        print(low, makespan, high)
+        new.addEdge(0,task*2+1, 0, makespan)
+
+        if new.isConsistent():
+            return new
+
+
+def generateParallelChain(agent, task):
+    total_event = ((2 * task) + 1) * agent + 1
+
+    while True:
+        new = STN()
+        new.addVertex(0)
+
+        for i in range(total_event):
+            new.addVertex(i+1)
+
+        contingent = True
+        for i in range(agent):
+            start = ((2 * task) + 1) * i + 1
+            end = ((2 * task) + 1) * (i + 1)
+            new.addEdge(0, start, 0, 15)
+
+            for j in range(start, end):
+                type = 'stcu' if contingent else 'stc'
+                contingent = not contingent
+
+                if type == 'stcu':
+                    # low = round(random.uniform(10, 20), 2)
+                    # high = round(random.uniform(30, 40), 2)
+                    low = random.randint(10, 20)
+                    high = random.randint(30, 40)
+                    new.addEdge(j, j+1, low, high, type='stcu')
+                else:
+                    # low = round(random.uniform(5, 10), 2)
+                    # high = round(random.uniform(30, 35), 2)
+                    low = random.randint(5, 10)
+                    high = random.randint(35, 40)
+                    new.addEdge(j, j+1, low, high)
+
+            new.addEdge(end, total_event, -10, 10)
+
+        num_activity = (2 * task) + 1
+        max_length = max([e.Cij + e.Cji for e in list(new.edges.values())])
+        up_bound = max_length * num_activity
+
+        # low = round(random.uniform(0.35*up_bound, 0.45*up_bound), 2)
+        # high = round(random.uniform(0.5*up_bound, 0.6*up_bound), 2)
+        low = random.randint(int(0.45*up_bound), int(0.53*up_bound))
+        high = random.randint(int(0.55*up_bound), int(0.65*up_bound))
+        new.addEdge(0, total_event, low, high)
+
+        print("\n\nChecking consistensy...")
+        if not new.isConsistent():
+            continue
+
+        print("Checking Dynamic Controllability...")
+        try:
+            result, conflicts, bounds, weight = DC_Checker(new.copy(), report=False)
+        except Exception:
+            continue
+
+        if result:
+            return new
+
+        # if result:
+        #     continue
+        #
+        # print("Try if relax works...")
+        # try:
+        #     new_STN, count, cycles = relaxSearch(new.copy())
+        # except Exception:
+        #     continue
+        #
+        # print("New needs to relax {} number of times!".format(count))
+        # print("Start simulation...")
+        # success = simulation(new.copy(), 10)
+        # if success != 0:
+        #     return new
 
 
 

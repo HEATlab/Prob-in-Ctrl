@@ -59,60 +59,6 @@ def dc_checking_file(filename):
     STN = loadSTNfromJSONfile(filename)
     return dc_checking(STN)
 
-
-
-##
-# \fn generateChain(task, free)
-# \brief generate a consistent STNUs in a chainlike structure
-#
-# \details The chainlike STNU is very common in real life application, such as
-#          AUV need to drive to different sites and complete task at each site.
-#          Driving to different cite is contingent, but the agent can decide
-#          how long it takes to complete the task.
-#
-# @param task  The number of tasks need to be completed
-# @param free  The total length of the free constraint intervals we want
-#              in the generated STNU
-#
-# @return Return the generated STNU
-def generateChain(task, free):
-    totalEvent = 2 * (task+1)
-
-    while True:
-        new = STN()
-        for i in range(totalEvent):
-            new.addVertex(i)
-
-        L = [random.randint(0, 100) for i in range(task)]
-        s = sum(L)
-        L = [int(x/s*free) for x in L]
-        diff = free - sum(L)
-        L[-1] += diff
-
-        bounds = []
-        for i in range(totalEvent-1):
-            type = 'stcu' if i % 2==0 else 'stc'
-            if type == 'stcu':
-                lowBound = random.randint(0,50)
-                length = random.randint(1,50)
-                bounds.append((lowBound, lowBound+length))
-                new.addEdge(i, i+1, lowBound, lowBound+length, type='stcu')
-            else:
-                lowBound = random.randint(0,100)
-                length = L[int((i-1)/2)]
-                bounds.append((lowBound, lowBound+length))
-                new.addEdge(i, i+1, lowBound, lowBound+length)
-
-        low = sum([x[0] for x in bounds])
-        up = sum([x[1] for x in bounds])
-        makespan = random.randint(low, up)
-        new.addEdge(0,task*2+1, 0, makespan)
-
-        if new.isConsistent():
-            return new
-
-
-
 ##
 # \fn normal(STN)
 # \brief convert a given STNU to its normal form labeled graph using DC_STN
@@ -191,6 +137,9 @@ class PriorityQueue:
     # @return A tuple in the form of (priority, data)
     def pop(self):
         return heapq.heappop(self.queue)
+        # popped = self.queue[0]
+        # self.queue.remove(popped)
+        # return popped
 
 
     ##

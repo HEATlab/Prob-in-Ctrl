@@ -1,5 +1,6 @@
 from algorithm import DC_Checker
 from stn import STN, loadSTNfromJSONfile
+from relax import relaxSearch
 
 from scipy.stats import norm
 from math import sqrt
@@ -10,11 +11,11 @@ from math import sqrt
 
 ##
 # \fn prob_small_sum(lengths, S)
-# \brief 
-# 
-# @param lengths   An array of the lengths l_i 
+# \brief
+#
+# @param lengths   An array of the lengths l_i
 # @param S         A sum the (a_i)s should be less than
-# 
+#
 # @return          The probability that a_1 + ... + a_n <= S given
 #                  that a_i ~ U(0, l_i)
 def prob_small_sum(lengths: list, S: float) -> float:
@@ -52,22 +53,44 @@ def prob_of_DC(network: STN) -> float:
     lengths = []
     for nodes, edge in edge_dict.items():
         lengths.append(edge[0].getWeightMax() - edge[0].getWeightMin())
-    
+
     S = sum(lengths) + neg_weight
 
-    return prob_small_sum(lengths, S) 
-
-### Testing
-rel_path = "stnudata/uncertain/"
-beg = "uncertain"
-end = ".json"
+    return prob_small_sum(lengths, S)
 
 
-# good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
-good_list = [1, 2, 3, 4 ,5]
+def prob(network: STN) -> float:
+    _, _, cycles = relaxSearch(network.copy())
 
-file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+    if cycles == []:
+        print("It's controllable tho!")
+        return False
 
-for name in file_names:
-    res = prob_of_DC_file(name)
-    print(f"{name} has expected success rate {100*res}%.")
+    p = 1
+    for bounds, neg_weight in cycles:
+        edge_dict = bounds['contingent']
+
+        lengths = []
+        for nodes, edge in edge_dict.items():
+            lengths.append(edge[0].Cij + edge[0].Cji)
+
+        S = sum(lengths) + neg_weight
+        print(prob_small_sum(lengths, S))
+        p *= prob_small_sum(lengths, S)
+
+    return p
+#
+# ### Testing
+# rel_path = "stnudata/uncertain/"
+# beg = "uncertain"
+# end = ".json"
+#
+#
+# # good_list = list(range(8,18)) + list(range(19,29)) + list(range(30,31)) + [33]
+# good_list = [1, 2, 3, 4 ,5]
+#
+# file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list]
+#
+# for name in file_names:
+#     res = prob_of_DC_file(name)
+#     print(f"{name} has expected success rate {100*res}%.")
