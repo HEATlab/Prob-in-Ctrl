@@ -69,21 +69,20 @@ def prob_of_multiple_conflicts(lengths_list: List[list], weights: List[float]):
 ##
 # \fn prob_of_DC()
 def prob_of_DC(network: STN) -> float:
-    is_controllable, _, bounds, neg_weight = DC_Checker(network, False)
+    _, num_conflicts, cycles, neg_weights = relaxSearch(network)
 
-    if is_controllable:
-        print("It's controllable tho!")
-        return False
+    lengths_list = [[] for j in range(num_conflicts)]
+    weights_list = []
 
-    edge_dict = bounds['contingent']
+    for j in range(num_conflicts):
+        edges = cycles[j]
+        for edge in edges:
+            lengths_list[j].append(edge.getWeightMax() - edge.getWeightMin())
 
-    lengths = []
-    for nodes, edge in edge_dict.items():
-        lengths.append(edge[0].getWeightMax() - edge[0].getWeightMin())
+        S = sum(lengths_list[j]) + neg_weights[j]
+        weights_list.append(S)
 
-    S = sum(lengths) + neg_weight
-
-    return prob_small_sum(lengths, S)
+    return prob_of_multiple_conflicts(lengths_list, weights_list)
 
 def main():
     # rel_path = "stnudata/uncertain/"
@@ -92,7 +91,7 @@ def main():
     end = ".json"
 
     rel_path = "stnudata/more_uncertain/"
-    good_list = range(48, 133)
+    good_list = range(133, 139)
     # bad_set = {17}
     # good_list = [7]
     # good_list = range(1,32)
