@@ -48,7 +48,7 @@ def special_prob(lengths: list, S: float) -> float:
 
     log_prob = numerator - denominator
     true_prob = exp(log_prob)
-    return 0.0
+    return true_prob
 
 ##
 # \fn prob_of_DC_file()
