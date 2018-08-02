@@ -9,7 +9,7 @@ import json
 # \note All the data is manually entered in
 
 def save_data():
-    out_name = "result/result_dynamic_tiny.json"
+    out_name = "result/result_dynamic.json"
     # This dictionary has
     # - keys:   names of files
     # - values: (expected success rate, actual success rates)
@@ -33,7 +33,7 @@ def save_data():
     end = ".json"
 
     # How many times we dispatch on each network
-    SAMPLE_SIZE = 100
+    SAMPLE_SIZE = 50000
 
     for path, info in paths.items():
         beg, file_nos = info
@@ -58,7 +58,7 @@ def save_data():
         json.dump(dynamic_data, out_file)
 
     print("Finished storing data.")
-    print("Third time's the charm.")
+    print("For you, I have toiled all night. Was it worth it?")
 
 def main():
     save_data()
