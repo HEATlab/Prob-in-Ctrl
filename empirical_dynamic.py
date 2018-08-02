@@ -20,7 +20,7 @@ def save_data():
     old_nums = [j for j in range(1, 32) if j != 22]
     # File 17, 21, 25 through 47 had dispatch errors and are omitted
     bad_set = {17, 21}.union(set(range(25, 48)), set(range(118, 133)), 
-            {52, 58, 62, 70, 72, 80, 81, 85, 94, 104, 116})
+            {23, 52, 58, 62, 70, 72, 80, 81, 85, 94, 104, 116})
     new_nums = [j for j in range(1,139) if j not in bad_set]
     
     # This dictionary has
@@ -32,7 +32,7 @@ def save_data():
     end = ".json"
 
     # How many times we dispatch on each network
-    SAMPLE_SIZE = 800
+    SAMPLE_SIZE = 50000
 
     for path, info in paths.items():
         beg, file_nos = info

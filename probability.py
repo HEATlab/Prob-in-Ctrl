@@ -91,7 +91,7 @@ def main():
     end = ".json"
 
     rel_path = "stnudata/more_uncertain/"
-    good_list = range(133, 139)
+    good_list = [2]
     # bad_set = {17}
     # good_list = [7]
     # good_list = range(1,32)

@@ -91,7 +91,7 @@ def simulation(network: STN, size: int, verbose = False) -> float:
         # print("The original version looks like: ")
         # print(dc_network)
         result = dispatch(network, copy, realization, 
-                contingents, uncontrollables, False)
+                contingents, uncontrollables, verbose)
         # print("Completed a simulation.")
         if result:
             total_victories += 1
@@ -158,6 +158,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 if lower_bound < min_time:
                     min_time = lower_bound
                     current_event = event
+                    print(f"Event is {current_event} at time {min_time}.")
 
 
         is_uncontrollable = current_event in uncontrollable_events
@@ -172,10 +173,12 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         # Quicker check for scheduling errors
         if not sim.safely_scheduled(network, schedule, current_event):
             if verbose:
+                print("------------------------------------------------------")
                 print("Failed -- event", current_event, "violated a constraint.")
                 print(f"At this time, we still had {len(not_executed)} " 
                         f"out of {len(dc_network.verts)} events left to schedule")
                 verbose = False
+                print("------------------------------------------------------")
             return False
 
         # If the executed event was a contingent source
@@ -184,6 +187,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
             delay = realization[uncontrollable]
             set_time = current_time + delay
             enabled.add(uncontrollable)
+            print(f"The time window of {uncontrollable} has changed!!!")
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
             time_windows[uncontrollable] = [set_time, set_time]
 
         if is_uncontrollable:
@@ -213,6 +218,11 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 # print("Looking at edge", edge)
                 new_lower_bound = current_time - edge.weight
                 if new_lower_bound > time_windows[edge.i][0]:
+                    if verbose and (edge.i == 4):
+                        print(f"{edge.i} used to have lower bound " 
+                                f"{time_windows[edge.i][0]} but this "
+                                f"has changed to {new_lower_bound}.")
+                        print(f"This change occurred because of the adjacency to {edge.j}.")
                     time_windows[edge.i][0] = new_lower_bound
                     # print(f"Changed to {edge.i}: {time_windows[edge.i]}")
                     # assert new_lower_bound <= time_windows[edge.i][1], \
@@ -291,17 +301,17 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 800
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    beg = "new_uncertain"
+    SAMPLE_SIZE = 1
+    rel_path = "stnudata/uncertain/"
+    beg = "uncertain"
+    # beg = "new_uncertain"
     end = ".json"
 
-    rel_path = "stnudata/more_uncertain/"
+    # rel_path = "stnudata/more_uncertain/"
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    good_list = range(133, 139)
+    good_list = [27]
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
@@ -313,7 +323,7 @@ def main():
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
     for name in file_names:
-        simulate_file(name, SAMPLE_SIZE, verbose=False)
+        res = simulate_file(name, SAMPLE_SIZE, verbose=True)
 
 if __name__ == "__main__":
     main()
