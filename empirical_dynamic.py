@@ -21,18 +21,18 @@ def save_data():
     # File 17, 21, 25 through 47 had dispatch errors and are omitted
     bad_set = {17, 21}.union(set(range(25, 48)), set(range(118, 133)), 
             {52, 58, 62, 70, 72, 80, 81, 85, 94, 104, 116})
-    new_nums = [j for j in range(1,25) if j not in bad_set]
+    new_nums = [j for j in range(1,139) if j not in bad_set]
     
     # This dictionary has
     # - keys:   names of folders
     # - values: (base name, list of file nums) 
     paths = {"stnudata/uncertain/": ("uncertain", old_nums), 
-            "stnudata/more_uncertain": ("new_uncertain", new_nums)}
+            "stnudata/more_uncertain/": ("new_uncertain", new_nums)}
 
     end = ".json"
 
     # How many times we dispatch on each network
-    SAMPLE_SIZE = 50000
+    SAMPLE_SIZE = 800
 
     for path, info in paths.items():
         beg, file_nos = info
@@ -57,4 +57,10 @@ def save_data():
         json.dump(dynamic_data, out_file)
 
     print("Finished storing data.")
-    print("See ya.")
+    print("Third time's the charm.")
+
+def main():
+    save_data()
+
+if __name__ == "__main__":
+    main()

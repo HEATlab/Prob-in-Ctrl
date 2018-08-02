@@ -45,6 +45,7 @@ def simulate_file(file_name, size, verbose = False) -> float:
     result = simulation(network, size, verbose)
     if verbose:
         print(f"{file_name} worked {100*result}% of the time.")
+    return result
 
 ##
 # \fn simulation(network, size)
