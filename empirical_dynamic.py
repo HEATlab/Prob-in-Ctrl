@@ -9,7 +9,7 @@ import json
 # \note All the data is manually entered in
 
 def save_data():
-    out_name = "result/result_dynamic.json"
+    out_name = "result/result_dynamic_tiny.json"
     # This dictionary has
     # - keys:   names of files
     # - values: (expected success rate, actual success rates)
@@ -17,10 +17,11 @@ def save_data():
 
     ## Setup for the files to use
     # File number 22 has strange dispatch error, and is thus omitted
-    old_nums = [j for j in range(1, 32) if j != 22]
+    old_nums = [j for j in range(1, 32) if (j not in {22, 27})]
     # File 17, 21, 25 through 47 had dispatch errors and are omitted
     bad_set = {17, 21}.union(set(range(25, 48)), set(range(118, 133)), 
-            {23, 52, 58, 62, 70, 72, 80, 81, 85, 94, 104, 116})
+            {23, 52, 57, 58, 62, 70, 72, 73, 74, 80, 81, 83, 85, 
+                94, 104, 111, 116})
     new_nums = [j for j in range(1,139) if j not in bad_set]
     
     # This dictionary has
@@ -32,7 +33,7 @@ def save_data():
     end = ".json"
 
     # How many times we dispatch on each network
-    SAMPLE_SIZE = 50000
+    SAMPLE_SIZE = 100
 
     for path, info in paths.items():
         beg, file_nos = info

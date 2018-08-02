@@ -161,8 +161,6 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 if lower_bound < min_time:
                     min_time = lower_bound
                     current_event = event
-                    print(f"Event is {current_event} at time {min_time}.")
-
 
         is_uncontrollable = current_event in uncontrollable_events
 
@@ -211,20 +209,13 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 new_upper_bound = edge.weight + current_time
                 if new_upper_bound < time_windows[edge.j][1]:
                     time_windows[edge.j][1] = new_upper_bound
-                    # print(f"Changed to {edge.j}: {time_windows[edge.j]}")
                     # assert new_upper_bound >= time_windows[edge.j][0], \
                     #         f"Incompatible window {edge.j}: {time_windows[edge.j]}"
             if edge.j == current_event:
                 # print("Looking at edge", edge)
                 new_lower_bound = current_time - edge.weight
                 if new_lower_bound > time_windows[edge.i][0]:
-                    if verbose and (edge.i == 4):
-                        print(f"{edge.i} used to have lower bound " 
-                                f"{time_windows[edge.i][0]} but this "
-                                f"has changed to {new_lower_bound}.")
-                        print(f"This change occurred because of the adjacency to {edge.j}.")
                     time_windows[edge.i][0] = new_lower_bound
-                    # print(f"Changed to {edge.i}: {time_windows[edge.i]}")
                     # assert new_lower_bound <= time_windows[edge.i][1], \
                     #         f"Incompatible window {edge.i}: {time_windows[edge.i]}."
 
@@ -278,10 +269,10 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         print(schedule)
         print("Network is: ")
         print(network)
-    # good = empirical.scheduleIsValid(network, schedule)
-    # # msg = "We're good" if good else "We're dead"
-    # # print(msg)
-    # # print("Schedule was: ")
+    good = empirical.scheduleIsValid(network, schedule)
+    if verbose:
+        msg = "We're good" if good else "We're dead"
+        print(msg)
     # # for k, v in schedule.items():
     # #     # if k == 0:
     # #     if k != -1:
@@ -290,7 +281,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
     # #         print(f"Event {k} occurred {v - schedule[k-1]} seconds"
     # #                 f" after event {k-1}.")
     # return good
-    return True
+    return good
 
 ##
 # \fn generate_realization(network)
@@ -303,7 +294,7 @@ def generate_realization(network: STN) -> dict:
 
 def main():
     ### Testing
-    SAMPLE_SIZE = 1
+    SAMPLE_SIZE = 1000
     # rel_path = "stnudata/uncertain/"
     # beg = "uncertain"
     beg = "new_uncertain"
@@ -313,7 +304,7 @@ def main():
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    good_list = [57]
+    good_list = [83]
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
@@ -325,7 +316,7 @@ def main():
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
     for name in file_names:
-        res = simulate_file(name, SAMPLE_SIZE, verbose=True)
+        res = simulate_file(name, SAMPLE_SIZE, verbose=False)
 
 if __name__ == "__main__":
     main()

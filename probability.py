@@ -40,7 +40,7 @@ def prob_small_sum(lengths: list, S: float) -> float:
 def special_prob(lengths: list, S: float) -> float:
     n = len(lengths)
     # Get the logarithm of the relevant expression
-    numerator = n * log(sum(lengths))
+    numerator = n * log(sum(lengths) - S)
 
     log_lengths = [log(l) for l in lengths]
     log_factorial = [log(m) for m in range(1, n+1)]
