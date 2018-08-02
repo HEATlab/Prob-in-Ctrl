@@ -110,6 +110,9 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
         contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
+    if verbose:
+        print("The original network is")
+        print(network)
     ## Dispatch the modified network
     # Assume we have a zero reference point
     enabled = {ZERO_ID}
@@ -164,7 +167,6 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         is_uncontrollable = current_event in uncontrollable_events
 
         if verbose:
-            print("We are scheduling event", current_event, "at time", min_time)
             if is_uncontrollable:
                 print("This event is uncontrollable!!!")
         current_time = min_time
@@ -187,8 +189,6 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
             delay = realization[uncontrollable]
             set_time = current_time + delay
             enabled.add(uncontrollable)
-            print(f"The time window of {uncontrollable} has changed!!!")
-            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
             time_windows[uncontrollable] = [set_time, set_time]
 
         if is_uncontrollable:
@@ -265,6 +265,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                             break
 
                 if ready:
+                    if verbose:
+                        print("Looks like we enabled", event)
                     enabled.add(event)
                 # print("***")
 
@@ -302,16 +304,16 @@ def generate_realization(network: STN) -> dict:
 def main():
     ### Testing
     SAMPLE_SIZE = 1
-    rel_path = "stnudata/uncertain/"
-    beg = "uncertain"
-    # beg = "new_uncertain"
+    # rel_path = "stnudata/uncertain/"
+    # beg = "uncertain"
+    beg = "new_uncertain"
     end = ".json"
 
-    # rel_path = "stnudata/more_uncertain/"
+    rel_path = "stnudata/more_uncertain/"
 
     # good_list = list(range(1,32))
     # BAD: 10, 21, 24, 27, 29
-    good_list = [27]
+    good_list = [57]
     # bad_set = {10, 21, 24, 27, 29}
     bad_set = set()
     # good_list = [17]
