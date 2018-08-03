@@ -17,8 +17,25 @@ The `stn` folder contains files describing an STN class (which is really a class
 ### Primary Programs
 
 #### stn/stn.py
+Defines STN, Edge, and Vertex classes.
+
+##### Details
+A Vertex represents an event in an STN. 
+It is encoded as a single node with a unique integer ID.
+
+An Edge represents a constraint in an STN.
+It is encoded as a pair of vertex IDs labeled with an interval and type.
+The type designates an edge as a requirement (`stc`) or contingnet (`stcu`) edge.
+
+An STN consists of events with constraints in between events. 
+An STN object is encoded as set of Vertices with Edges between some pairs of vertices.
+
+In general, a Vertex with ID zero is treated as the zero-timepoint. 
 
 #### stn/stnjsontools.py
+Provides functions to create STN objects from input JSON files.
+
+#### 
 
 
 ### Secondary Programs
