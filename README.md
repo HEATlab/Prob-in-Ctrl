@@ -97,7 +97,7 @@ This folder contains several JSON files storing results we found related to degr
 ## Credits
 The Summer 2018 HEATlab consisted of teams *Probably in Control*, *Acrobotics*, and *Robot Luncheon*.
 The former two are the spiritual successors to the 2017 HEATlab *Polybots* team, while the latter is the evolution and extension of 2017 HEATlab team *Robot Brunch*.
-All teams worked at Harvey Mudd College under the supervision of [Professor Jim Boerkoel]{https://www.cs.hmc.edu/~boerkoel/] as part of the HMC CS department's "[summer of CS](https://www.cs.hmc.edu/research/)".
+All teams worked at Harvey Mudd College under the supervision of [Professor Jim Boerkoel](https://www.cs.hmc.edu/~boerkoel/) as part of the HMC CS department's "[summer of CS](https://www.cs.hmc.edu/research/)".
 
 - *Probably in Control* ~ Team {Maggie Li, Savana Ammons, Shyan Akmal}
   - Explored the geometry of STNUs and degrees of controllability
