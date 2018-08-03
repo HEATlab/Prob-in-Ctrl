@@ -86,6 +86,14 @@ This program generated `result_dynamic.json`.
 #### plot.py
 A file that makes use of the `plotly` module to make some nice graphs of the results outputted by `empirical.py`.  
 
+#### result_stats.py
+A short file for computing correlations between some of the sets of data stored in the `result` folder.
+
+#### simulation.py
+Attempts at writing early and late strategies for dispatch on STNUs.
+This program did not really end up getting used, since the attempts at implementing early and late strategies here are incorrect.
+Instead, we only used the simulation presented in `dispatch.py`.
+
 #### util.py
 Holds a few helpful functions, which are called by other programs.
 ##### Details
