@@ -8,7 +8,7 @@ The programs here serve to
 
 
 ## Documentation
-Currently, no `doxygen.config file` exists in this repository.
+Currently, no `doxygen.config` file exists in this repository.
 However, the files are commented so that doxygen documentation can be automatically generated once a config and mainpage files are set up.
 
 ## Project Structure
