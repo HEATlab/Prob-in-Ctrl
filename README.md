@@ -39,6 +39,11 @@ Stores functions that, given conflicts from non-DC network, return the predicted
 ##### Details
 The approximation here is an application of CLT to sums of uniformly distributed random variables. 
 
+#### relax.py
+Using the routines from `algorithm.py` and `LP.py`, defines various different ways of selecting "maximal" subintervals.
+##### Description
+The approaches for computing subintervals in the strong controllability case involve using solutiosn from some LPs.
+In the dynamic controllability case, the main approach implemented is the `optimalRelax` function, which is a very straightforward algorithm (with `O(k\log k)` complexity, if `k` is the number of edges in the conflict) that finds the true maximum subintervals (in the sense of maximizing resulting volume while ensuring the conflict is resolved).
 
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
