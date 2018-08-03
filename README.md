@@ -31,7 +31,14 @@ It works by first leveraging a conversion to the `DC_STN` class to infer wait co
 
 #### LP.py
 Uses `PuLP` module to set up and solve several different LPs.
-These LPs are mostly attempts at linearizing the calculation for degree of strong controllability. 
+These LPs are primarily attempts at linearizing the calculation for degree of strong controllability. 
+The main structure of the constraints remains the same accross most of the programs, but there are many different types of objective functions used.
+
+#### probability.py
+Stores functions that, given conflicts from non-DC network, return the predicted probability of successful dispatch on those networks.
+##### Details
+The approximation here is an application of CLT to sums of uniformly distributed random variables. 
+
 
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
@@ -71,6 +78,9 @@ Computes and stores data for success rates of dynamic dispatch and probabilistic
 ##### Details
 This program generated `result_dynamic.json`.
 
+#### plot.py
+A file that makes use of the `plotly` module to make some nice graphs of the results outputted by `empirical.py`.  
+
 #### util.py
 Holds a few helpful functions, which are called by other programs.
 ##### Details
@@ -83,6 +93,12 @@ Provides
 
 #### build_xml.py
 A python program to take in AMPL model files and convert them to an XML format that can be submitted to the NEOS server. 
+
+#### model.py
+Given an STNU, builds the corresponding optimization problem for computing the degree of strong controllability for the network.
+##### Details
+The output is an AMPL file. 
+The objective function is the logarithm of the product of the lengths of contingent subintervals. 
 
 #### NeosClient.py
 A NEOS Python client (made available by the [NEOS server](https://neos-server.org/neos/downloads.html)) that has been mildly modified. This is used to submit optimization problems to NEOS, and then extract the values achieved by the objective function once the jobs are finished. 
@@ -101,7 +117,7 @@ All teams worked at Harvey Mudd College under the supervision of [Professor Jim 
 
 - *Probably in Control* ~ Team {Maggie Li, Savana Ammons, Shyan Akmal}
   - Explored the geometry of STNUs and degrees of controllability
-- *Acrobotics* ~ Team VivaJoon
-  - Explored the durability of schedules in STNS and made sumobot mascots
+- *Acrobotics* ~ Team VivaJoon OjhaLee
+  - Explored the durability of schedules in STNs and developed sumobot mascots
 - *Robot Luncheon* ~ Senior lab member Jordan R. Abrahams
   - Designed and tested the DREAM algorithm for PSTN dispatch
