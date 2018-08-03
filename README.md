@@ -7,7 +7,7 @@ The programs here serve to
 - simulate dispatch on STNUs
 
 
-## (Lack of) Documentation
+## Documentation
 Currently, no doxygen.config file exists in this repository.
 However, the files are commented so that doxygen documentation can be automatically generated once a config and mainpage files are set up.
 
@@ -15,6 +15,13 @@ However, the files are commented so that doxygen documentation can be automatica
 The `stn` folder contains files describing an STN class (which is really a class for STNUs, and more generally could be easily extended to represetn PSTNs) and converting between the class and JSON representations of networks.
 
 ### Primary Programs
+
+#### algorithm.py
+Implements algorithms for checking if a network is dynamically controllable (DC).
+If the network is not DC, there are functions for reporting the "conflicts" that prevent the network from achieving controllability.
+
+##### Details 
+Implements the `DCDijkstra` algorithm described in [(Williams 2017)](https://www.ijcai.org/proceedings/2017/598).
 
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
@@ -35,12 +42,23 @@ In general, a Vertex with ID zero is treated as the zero-timepoint.
 #### stn/stnjsontools.py
 Provides functions to create STN objects from input JSON files.
 
-#### 
-
 
 ### Secondary Programs
 
+### Interfacing with NEOS
+
+#### build_xml.py
+A python program to take in AMPL model files and convert them to an XML format that can be submitted to the NEOS server. 
+
+#### NeosClient.py
+A NEOS Python client (made available by the [NEOS server](https://neos-server.org/neos/downloads.html)) that has been mildly modified. This is used to submit optimization problems to NEOS, and then extract the values achieved by the objective function once the jobs are finished. 
+
+
+
 ### Other Files
+
+#### result
+This folder contains several JSON files storing results we found related to degree of controllability, empirical success rates for dispatch, and solutions to nonlinear optimization problems. 
 
 ## References
 
