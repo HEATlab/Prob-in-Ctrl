@@ -60,6 +60,17 @@ Builds a `DC_STN` class that represents STNUs with an aim of manipulating the as
 Implements the DC checking algorithm described in [(Morris 2003)](https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf).
 Also has a function for checking if STNs are consistent or not. 
 
+#### empirical.py
+Computes and plots empirical results, mainly related to strong controllability.
+##### Details
+Leverages functions from `LP.py`, `dispatch.py`, and `relax.py` to measure approximate and exact degrees of strong controllability, approximate degrees of dynamic controllability, and true success rates with different dispatch strategies. 
+Comtains some methods for plotting these results as well. 
+
+#### empirical_dynamic.py
+Computes and stores data for success rates of dynamic dispatch and probabilistic estimates of those success rates.
+##### Details
+This program generated `result_dynamic.json`.
+
 #### util.py
 Holds a few helpful functions, which are called by other programs.
 ##### Details
