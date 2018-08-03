@@ -13,19 +13,24 @@ However, the files are commented so that doxygen documentation can be automatica
 
 ## Project Structure
 The `stn` folder contains files describing an STN class (which is really a class for STNUs, and more generally could be easily extended to represetn PSTNs) and converting between the class and JSON representations of networks.
+The remaining programs are not organized in any particular way. Because of this, in the comments that follow we often describe as a function taking in an "STN" when it really also works with STNUs as input.
 
 ### Primary Programs
 
 #### algorithm.py
 Implements algorithms for checking if a network is dynamically controllable (DC).
 If the network is not DC, there are functions for reporting the "conflicts" that prevent the network from achieving controllability.
-
 ##### Details 
 Implements the `DCDijkstra` algorithm described in [(Williams 2017)](https://www.ijcai.org/proceedings/2017/598).
 
+#### dispatch.py
+Implements a dispatch strategy and associated simulation for STNUs, based off Algorithm 2 from [(Nilsson)](https://pdfs.semanticscholar.org/0313/af826f45d090a63fd5d787c92321666115c8.pdf).
+##### Details
+This strategy should always succeed for dynamically controllable STNUs.
+It works by first leveraging a conversion to the `DC_STN` class to infer wait constraints, and then following early execution.
+
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
-
 ##### Details
 A Vertex represents an event in an STN. 
 It is encoded as a single node with a unique integer ID.
@@ -44,6 +49,20 @@ Provides functions to create STN objects from input JSON files.
 
 
 ### Secondary Programs
+
+#### dc_stn.py
+An older file.
+Builds a `DC_STN` class that represents STNUs with an aim of manipulating the associated labeled distance graph. 
+Implements the DC checking algorithm described in [(Morris 2003)](https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf).
+Also has a function for checking if STNs are consistent or not. 
+
+#### util.py
+Holds a few helpful functions, which are called by other programs.
+##### Details
+Provides
+- `STNtoDCSTN`: a function for converting from `STN` objects to `DC_STN` objects
+- `normal`:     a function for getting STNUs in normal form (that is, all contingent edges have lower bound zero)
+- `PriorityQueue`: a class implementing a standard min-heap
 
 ### Interfacing with NEOS
 
