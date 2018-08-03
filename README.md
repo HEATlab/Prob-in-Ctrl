@@ -29,6 +29,10 @@ Implements a dispatch strategy and associated simulation for STNUs, based off Al
 This strategy should always succeed for dynamically controllable STNUs.
 It works by first leveraging a conversion to the `DC_STN` class to infer wait constraints, and then following early execution.
 
+#### LP.py
+Uses `PuLP` module to set up and solve several different LPs.
+These LPs are mostly attempts at linearizing the calculation for degree of strong controllability. 
+
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
 ##### Details
