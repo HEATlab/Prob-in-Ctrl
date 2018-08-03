@@ -1,0 +1,8 @@
+The data in result_success.json had
+	Correlation:	0.9997793709833531
+	P-value:	0.0
+
+The data in result_compare.json had
+	Correlation:	0.9961840134457157
+	P-value:	0.0
+
