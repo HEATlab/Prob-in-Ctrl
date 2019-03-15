@@ -6,8 +6,6 @@ from util import *
 # \note Read Williams 2017 paper for more details on the algorithm implemented:
 #       https://www.ijcai.org/proceedings/2017/0598.pdf
 
-# TODO: Add DAG to DCDijkstra?
-
 
 # -------------------------------------------------------------------------
 # Helper Functions
