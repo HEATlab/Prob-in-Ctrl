@@ -1,10 +1,10 @@
 # Prob-in-Ctrl
 This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group). 
-These files were migrated from the repository for Robotbrunch, and earlier group in HEATlab.
+These files were migrated from the repository for Robotbrunch, a previous HEATlab team.
 The programs here serve to
-- generate STNUs, both randomly and from provided PSTN datasets
-- compute metrics related to controllability on STNUs
-- simulate dispatch on STNUs
+- generate STNUs, both randomly and from provided PSTN datasets, 
+- compute metrics related to controllability on STNUs, and 
+- simulate dispatch on STNUs.
 
 
 ## Documentation
