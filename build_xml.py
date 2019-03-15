@@ -45,6 +45,8 @@ def build_xml(xml_name: str, model_name: str):
    xml_file.close()
 
 
+##
+# A short interactive program for converting files.
 def main():
    path = input("Please enter the path of directory:\n")
    out_path = input("Please enter the path of out directory:\n")
