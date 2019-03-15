@@ -8,8 +8,7 @@ The programs here serve to
 
 
 ## Documentation
-Currently, no `doxygen.config` file exists in this repository.
-However, the files are commented so that doxygen documentation can be automatically generated once a config and mainpage files are set up.
+Files throughout the project are commented in doxygen style.
 
 ## Project Structure
 The `stn` folder contains files describing an STN class (which is really a class for STNUs, and more generally could be easily extended to represetn PSTNs) and converting between the class and JSON representations of networks.
