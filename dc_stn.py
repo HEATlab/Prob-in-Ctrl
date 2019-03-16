@@ -212,7 +212,6 @@ class DC_STN(object):
                                  %(i,j,old_edge.parent,parent) )
             else:
                 if weight < old_edge.weight:
-                    ##TODO: check if this is right... I'm not sure
                     old_edge.weight = weight
                     if debug:
                         print("\nUpdated edge {}-U->{}".format(i,j))
