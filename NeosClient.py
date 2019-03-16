@@ -39,6 +39,13 @@ except ImportError:
 
 
 ##
+# \file NeosClient.py
+# \brief NEOS client, adapted from https://neos-server.org/neos/downloads.html,
+#        that submits optimization problems to NEOS and reports the values
+#        achieved by the optimal points.
+
+
+##
 # \fn getObjValue(xml_name, outfolder, username, user_password, output)
 # \brief Submit job to neos server and let it report the final result
 #
@@ -127,40 +134,41 @@ def getObjValue(xml_name, outfolder, username=None, \
            else:
                sys.stdout.write(decoded_msg)
 
-#
-# def main():
-#     xml_folder = input("Please input directory for xml files:\n")
-#     xml_L = glob.glob(os.path.join(xml_folder, '*.xml'))
-#     username = input("Please input Neos username:\n")
-#     password = input("Please input Neos password:\n")
-#     outfolder = input("Please enter output folder for job file:\n")
-#
-#     result = {}
-#     result['normal'] = {}
-#     result['unbounded'] = []
-#     result['waiting'] = []
-#     for fname in xml_L:
-#         p, f = os.path.split(fname)
-#         print("Processing: ", f)
-#         obj = getObjValue(fname, outfolder, username, password, True)
-#
-#
-#         print('hi')
-#         time.sleep(60)
-#         print('One minute passed...\n')
-#
-#         if obj == 'waiting':
-#             result['waiting'].append(f)
-#         elif not obj:
-#             result['unbounded'].append(f)
-#         else:
-#             f = f[:-4]
-#             result['normal'][f] = obj
-#
-#
-#     with open('result.json', 'w') as f:
-#         json.dump(result, f)
-#
-#
-# if __name__ == '__main__':
-#     main()
+##
+# \fn main()
+# \brief I/O for submitting specific sequence of jobs.
+def main():
+    xml_folder = input("Please input directory for xml files:\n")
+    xml_L = glob.glob(os.path.join(xml_folder, '*.xml'))
+    username = input("Please input Neos username:\n")
+    password = input("Please input Neos password:\n")
+    outfolder = input("Please enter output folder for job file:\n")
+
+    result = {}
+    result['normal'] = {}
+    result['unbounded'] = []
+    result['waiting'] = []
+    for fname in xml_L:
+        p, f = os.path.split(fname)
+        print("Processing: ", f)
+        obj = getObjValue(fname, outfolder, username, password, True)
+
+
+        print('Timer started. ')
+        time.sleep(60)
+        print('One minute passed...\n')
+
+        if obj == 'waiting':
+            result['waiting'].append(f)
+        elif not obj:
+            result['unbounded'].append(f)
+        else:
+            # Ignore the file's extension, and save its results.
+            f = f[:-4]
+            result['normal'][f] = obj
+
+    with open('result.json', 'w') as f:
+        json.dump(result, f)
+
+if __name__ == '__main__':
+    main()
