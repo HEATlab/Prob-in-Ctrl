@@ -83,24 +83,3 @@ def prob_of_DC(network: STN) -> float:
         weights_list.append(S)
 
     return prob_of_multiple_conflicts(lengths_list, weights_list)
-
-def main():
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    beg = "new_uncertain"
-    end = ".json"
-
-    rel_path = "stnudata/more_uncertain/"
-    good_list = [2]
-    # bad_set = {17}
-    # good_list = [7]
-    # good_list = range(1,32)
-    bad_set = set()
-    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
-
-    for name in file_names:
-        res = prob_of_DC_file(name)
-        print(f"{name} is expected to succeed {100*res}% of the time.")
-
-if __name__ == "__main__":
-    main()
