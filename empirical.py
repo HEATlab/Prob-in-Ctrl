@@ -14,13 +14,11 @@ import math
 
 ##
 # \file empirical.py
-# \brief perform empirical analysis on our designed metric
-
+# \brief perform empirical analysis on degree of controllability metrics.
 
 # -------------------------------------------------------------------------
 # Strong controllability
 # -------------------------------------------------------------------------
-
 
 ##
 # \fn newInterval(STN, epsilons)
@@ -54,17 +52,14 @@ def newInterval(STN, epsilons):
 #
 # @return the value of degree of strong controllability
 def calculateMetric(original, shrinked):
-    orig = 1
-    new = 1
     for i in range(len(original)):
         x, y = original[i]
-        orig *= (y-x)
+        orig = y-x
 
         a, b = shrinked[i]
-        new *= (b-a)
+        new = b-a
 
     return new, orig, float(new/orig)
-
 
 
 ##
