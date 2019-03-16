@@ -1,10 +1,14 @@
 ## \file dc_stn.py
 #  \brief An implementation of an STNU with dynamic controllability checking
 #  \note Read the Morris 2003 paper on dynamic controllability for more info on
-#    the algorithm used 
-# (https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf)
+#    the algorithm used
+# (https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf).
 
-
+# This file consists almost entirely of legacy code, inherited from the earlier
+# project RobotBrunch (in particular, documentation is sparse). The only
+# additions are in the "New functions" section at the bottom of the file. The
+# main purpose of this file was to originally check dynamic controllability -
+# a quicker check is provided in algorithm.py, which we prefer.
 
 ## \fn enum(*sequential, **named)
 #  \brief Implements enumerations
@@ -20,6 +24,7 @@ edgeType = enum(*edgeTypes)
 
 class DC_Vertex:
     def __init__(self,nodeID):
+        # nodeIDs should be unique to vertices.
         self.nodeID = nodeID
         self.outgoing_normal = []
         self.incoming_normal = []
@@ -30,16 +35,15 @@ class DC_Vertex:
 
     def __repr__(self):
         return f"Node {self.nodeID}"
-    
+
     def isSpecial(self):
         return len(self.incoming_upper) != 0 or len(self.incoming_lower) != 0
 
-    ##
-    # We might want to make this a better check later on
+    ## Equality only tests for nodeID.
     def __eq__(self, other):
         same_name = self.nodeID == other.nodeID
         return same_name
-    
+
     def copy(self):
         vertex = DC_Vertex(self.nodeID)
 
@@ -58,6 +62,7 @@ class DC_Vertex:
 
         return vertex
 
+## Directed, weighted edges.
 class DC_Edge:
     def __init__(self,i,j,weight,type=edgeType.NORMAL,parent=None,fake=False):
         self.i = i
@@ -73,7 +78,7 @@ class DC_Edge:
                             self.weight, self.type, self.parent)
 
     def copy(self):
-        edge = DC_Edge(self.i, self.j, self.weight, 
+        edge = DC_Edge(self.i, self.j, self.weight,
                 self.type, self.parent, self.fake)
         return edge
 
@@ -87,7 +92,7 @@ class DC_Edge:
 
         return src and snk and wght and types and prnt and fake
 
- ## \class DC_STN
+## \class DC_STN
 #  \brief an implementation of an STN for determining dynamic controllability.
 class DC_STN(object):
     def __init__(self):
@@ -111,7 +116,7 @@ class DC_STN(object):
         for k, v in self.lower_case_edges.items():
             new_dc_stn.lower_case_edges[k] = v.copy()
         return new_dc_stn
-    
+
     def __repr__(self):
         s = ""
         vert_ids = sorted(self.verts.keys())
@@ -438,9 +443,6 @@ class DC_STN(object):
         return num_reductions
 
 
-
-
-
     # -------------------------------------------------------------------------
     # New functions
     # -------------------------------------------------------------------------
@@ -461,8 +463,6 @@ class DC_STN(object):
         result += vertex.incoming_normal
 
         return result
-
-
 
     ##
     # \fn getNegNodes(self)
