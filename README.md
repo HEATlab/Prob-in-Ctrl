@@ -52,7 +52,7 @@ It is encoded as a single node with a unique integer ID.
 
 An Edge represents a constraint in an STN.
 It is encoded as a pair of vertex IDs labeled with an interval and type.
-The type designates an edge as a requirement (`stc`) or contingnet (`stcu`) edge.
+The type designates an edge as a requirement (`stc`) or contingent (`stcu`) edge.
 
 An STN consists of events with constraints in between events.
 An STN object is encoded as set of Vertices with Edges between some pairs of vertices.
@@ -75,7 +75,7 @@ Also has a function for checking if STNs are consistent or not.
 Computes and plots empirical results, mainly related to strong controllability.
 ##### Details
 Leverages functions from `LP.py`, `dispatch.py`, and `relax.py` to measure approximate and exact degrees of strong controllability, approximate degrees of dynamic controllability, and true success rates with different dispatch strategies.
-Comtains some methods for plotting these results as well. 
+Comtains some methods for plotting these results as well.
 
 #### plot.py
 A file that makes use of the `plotly` module to make some nice graphs of the results outputted by `empirical.py`.  
