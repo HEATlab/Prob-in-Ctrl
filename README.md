@@ -1,9 +1,9 @@
 # Prob-in-Ctrl
-This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group). 
+This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group).
 These files were migrated from the repository for Robotbrunch, a previous HEATlab team.
 The programs here serve to
-- generate STNUs, both randomly and from provided PSTN datasets, 
-- compute metrics related to controllability on STNUs, and 
+- generate STNUs, both randomly and from provided PSTN datasets,
+- compute metrics related to controllability on STNUs, and
 - simulate dispatch on STNUs.
 
 
@@ -19,7 +19,7 @@ The remaining programs are not organized in any particular way. Because of this,
 #### algorithm.py
 Implements algorithms for checking if a network is dynamically controllable (DC).
 If the network is not DC, there are functions for reporting the "conflicts" that prevent the network from achieving controllability.
-##### Details 
+##### Details
 Implements the `DCDijkstra` algorithm described in [(Williams 2017)](https://www.ijcai.org/proceedings/2017/598).
 
 #### dispatch.py
@@ -30,13 +30,13 @@ It works by first leveraging a conversion to the `DC_STN` class to infer wait co
 
 #### LP.py
 Uses `PuLP` module to set up and solve several different LPs.
-These LPs are primarily attempts at linearizing the calculation for degree of strong controllability. 
+These LPs are primarily attempts at linearizing the calculation for degree of strong controllability.
 The main structure of the constraints remains the same accross most of the programs, but there are many different types of objective functions used.
 
 #### probability.py
 Stores functions that, given conflicts from non-DC network, return the predicted probability of successful dispatch on those networks.
 ##### Details
-The approximation here is an application of CLT to sums of uniformly distributed random variables. 
+The approximation here is an application of CLT to sums of uniformly distributed random variables.
 
 #### relax.py
 Using the routines from `algorithm.py` and `LP.py`, defines various different ways of selecting "maximal" subintervals.
@@ -47,17 +47,17 @@ In the dynamic controllability case, the main approach implemented is the `optim
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
 ##### Details
-A Vertex represents an event in an STN. 
+A Vertex represents an event in an STN.
 It is encoded as a single node with a unique integer ID.
 
 An Edge represents a constraint in an STN.
 It is encoded as a pair of vertex IDs labeled with an interval and type.
 The type designates an edge as a requirement (`stc`) or contingnet (`stcu`) edge.
 
-An STN consists of events with constraints in between events. 
+An STN consists of events with constraints in between events.
 An STN object is encoded as set of Vertices with Edges between some pairs of vertices.
 
-In general, a Vertex with ID zero is treated as the zero-timepoint. 
+In general, a Vertex with ID zero is treated as the zero-timepoint.
 
 #### stn/stnjsontools.py
 Provides functions to create STN objects from input JSON files.
@@ -67,20 +67,15 @@ Provides functions to create STN objects from input JSON files.
 
 #### dc_stn.py
 An older file.
-Builds a `DC_STN` class that represents STNUs with an aim of manipulating the associated labeled distance graph. 
+Builds a `DC_STN` class that represents STNUs with an aim of manipulating the associated labeled distance graph.
 Implements the DC checking algorithm described in [(Morris 2003)](https://pdfs.semanticscholar.org/6fb1/b64231b23924bd9e2a1c49f3b282a99e2f15.pdf).
-Also has a function for checking if STNs are consistent or not. 
+Also has a function for checking if STNs are consistent or not.
 
 #### empirical.py
 Computes and plots empirical results, mainly related to strong controllability.
 ##### Details
-Leverages functions from `LP.py`, `dispatch.py`, and `relax.py` to measure approximate and exact degrees of strong controllability, approximate degrees of dynamic controllability, and true success rates with different dispatch strategies. 
+Leverages functions from `LP.py`, `dispatch.py`, and `relax.py` to measure approximate and exact degrees of strong controllability, approximate degrees of dynamic controllability, and true success rates with different dispatch strategies.
 Comtains some methods for plotting these results as well. 
-
-#### empirical_dynamic.py
-Computes and stores data for success rates of dynamic dispatch and probabilistic estimates of those success rates.
-##### Details
-This program generated `result_dynamic.json`.
 
 #### plot.py
 A file that makes use of the `plotly` module to make some nice graphs of the results outputted by `empirical.py`.  
@@ -104,23 +99,23 @@ Provides
 ### Interfacing with NEOS
 
 #### build_xml.py
-A python program to take in AMPL model files and convert them to an XML format that can be submitted to the NEOS server. 
+A python program to take in AMPL model files and convert them to an XML format that can be submitted to the NEOS server.
 
 #### model.py
 Given an STNU, builds the corresponding optimization problem for computing the degree of strong controllability for the network.
 ##### Details
-The output is an AMPL file. 
-The objective function is the logarithm of the product of the lengths of contingent subintervals. 
+The output is an AMPL file.
+The objective function is the logarithm of the product of the lengths of contingent subintervals.
 
 #### NeosClient.py
-A NEOS Python client (made available by the [NEOS server](https://neos-server.org/neos/downloads.html)) that has been mildly modified. This is used to submit optimization problems to NEOS, and then extract the values achieved by the objective function once the jobs are finished. 
+A NEOS Python client (made available by the [NEOS server](https://neos-server.org/neos/downloads.html)) that has been mildly modified. This is used to submit optimization problems to NEOS, and then extract the values achieved by the objective function once the jobs are finished.
 
 
 
 ### Other Files
 
 #### result
-This folder contains several JSON files storing results we found related to degree of controllability, empirical success rates for dispatch, and solutions to nonlinear optimization problems. 
+This folder contains several JSON files storing results we found related to degree of controllability, empirical success rates for dispatch, and solutions to nonlinear optimization problems.
 
 ## Credits
 The Summer 2018 HEATlab consisted of teams *Probably in Control*, *Acrobotics*, and *Robot Luncheon*.
