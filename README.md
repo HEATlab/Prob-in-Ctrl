@@ -31,7 +31,7 @@ If the network is not DC, there are functions for reporting the "conflicts" that
 Implements the `DCDijkstra` algorithm described in [(Williams 2017)](https://www.ijcai.org/proceedings/2017/598).
 
 #### dispatch.py
-Implements a dispatch strategy and associated simulation for STNUs, based off Algorithm 2 from [(Nilsson)](https://pdfs.semanticscholar.org/0313/af826f45d090a63fd5d787c92321666115c8.pdf).
+Implements a dispatch strategy and associated simulation for STNUs, based off Algorithm 2 from [(Nilsson 2014)](https://pdfs.semanticscholar.org/0313/af826f45d090a63fd5d787c92321666115c8.pdf).
 ##### Details
 This strategy should always succeed for dynamically controllable STNUs.
 It works by first leveraging a conversion to the `DC_STN` class to infer wait constraints, and then following early execution.
