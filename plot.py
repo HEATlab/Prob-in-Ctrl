@@ -133,7 +133,6 @@ def plot_strong_2():
         legend = dict(
             x = 0.1,
             y = 1,
-            # orientation="h",
             font = dict(
                 size = 20,
             ),
@@ -166,7 +165,6 @@ def plot_strong_2():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    # py.iplot(fig, filename='test')
     py.image.save_as(fig, filename='success.png', scale=3)
 
 
@@ -251,10 +249,4 @@ def plot_strong_3():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    # py.iplot(fig, filename='test')
     py.image.save_as(fig, filename='dynamic.png', scale=3)
-
-
-# plot_strong_1()
-# plot_strong_2()
-plot_strong_3()
