@@ -6,6 +6,14 @@ The programs here serve to
 - compute metrics related to controllability on STNUs, and
 - simulate dispatch on STNUs.
 
+## Data
+The `dataset` folder hosts JSON representations of STNUs used in our research.
+These STNUs were constructed from the *ROVERS* and *CAR-SHARING* PSTNs, made by [(Santana et. al. 2016)](https://www.aaai.org/ocs/index.php/ICAPS/ICAPS16/paper/view/13138) and available [here](http://groups.csail.mit.edu/mers/datasets/scheduling/), by replacing distributions with finite intervals over all contingent edges.  
+
+Each STNU is encoded by a list of nodes and constraints between those nodes.
+Networks in the `dataset/dynamic` directory are all dynamically controllable while networks in the `dataset/uncertain` directory are consistent, but not dynamically controllable.
+
+This dataset of networks is referenced in [the paper](https://www.cs.hmc.edu/HEAT/papers/Akmal_et_al_ICAPS_2019.pdf) our team submitted to [ICAPS 2019](https://icaps19.icaps-conference.org/).
 
 ## Documentation
 Files throughout the project are commented in doxygen style.
