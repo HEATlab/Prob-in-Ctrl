@@ -50,7 +50,7 @@ The approximation here is an application of CLT to sums of uniformly distributed
 Using the routines from `algorithm.py` and `LP.py`, defines various different ways of selecting "maximal" subintervals.
 ##### Description
 The approaches for computing subintervals in the strong controllability case involve using solutiosn from some LPs.
-In the dynamic controllability case, the main approach implemented is the `optimalRelax` function, which is a very straightforward algorithm (with `O(k\log k)` complexity, if `k` is the number of edges in the conflict) that finds the true maximum subintervals (in the sense of maximizing resulting volume while ensuring the conflict is resolved).
+In the dynamic controllability case, the main approach implemented is the `optimalRelax` function, which is a very straightforward algorithm (with ![equation](https://latex.codecogs.com/gif.latex?O%28k%5Clog%20k%29) complexity, if `k` is the number of edges in the conflict) that finds the true maximum subintervals (in the sense of maximizing resulting volume while ensuring the conflict is resolved).
 
 #### stn/stn.py
 Defines STN, Edge, and Vertex classes.
