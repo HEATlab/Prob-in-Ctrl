@@ -37,9 +37,6 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 # \fn simulate_file(file_name, size)
 def simulate_file(file_name, size, verbose = False) -> float:
     network = loadSTNfromJSONfile(file_name)
-    # if verbose:
-    #     print("The original network:")
-    #     print(network)
     result = simulation(network, size, verbose)
     if verbose:
         print(f"{file_name} worked {100*result}% of the time.")
@@ -48,7 +45,7 @@ def simulate_file(file_name, size, verbose = False) -> float:
 ##
 # \fn simulation(network, size)
 def simulation(network: STN, size: int, verbose = False) -> float:
-    # Some data useful from the original network
+    # Collect useful data from the original network
     contingent_pairs = network.contingentEdges.keys()
     contingents = {src: sink for (src, sink) in contingent_pairs}
     uncontrollables = set(contingents.values())
@@ -58,61 +55,54 @@ def simulation(network: STN, size: int, verbose = False) -> float:
     dc_network.addVertex(ZERO_ID)
 
     controllability = dc_network.is_DC()
-    # print("Finished checking DC...")
+    if verbose:
+        print("Finished checking DC...")
 
-    # If the network has a suspicious life, set it right
-    # (looks for inconsistency in one fixed edge)
-    ###########
+    # Detect if the network has an inconsistency in a fixed edge
     verts = dc_network.verts.keys()
     for vert in verts:
         if (vert, vert) in dc_network.edges:
-            # print("Checking", vert)
+            if verbose:
+                print("Checking", vert)
             edge = dc_network.edges[vert, vert][0]
             if edge.weight < 0:
                 dc_network.edges[(vert, vert)].remove(edge)
                 dc_network.verts[vert].outgoing_normal.remove(edge)
                 dc_network.verts[vert].incoming_normal.remove(edge)
                 del dc_network.normal_edges[(vert, vert)]
-    ###########
 
-    # Running the simulation
+    # Run the simulation
     for j in range(size):
         realization = generate_realization(network)
-        # print("*******")
-        # print("The realization was ")
-        # print(realization)
-        # print("********")
         copy = dc_network.copy()
-        # print("Made the copy.")
-        # print("The copy looks like: ")
-        # print(copy)
-        # print("The original version looks like: ")
-        # print(dc_network)
         result = dispatch(network, copy, realization,
                 contingents, uncontrollables, verbose)
-        # print("Completed a simulation.")
+        if vebose:
+            print("Completed a simulation.")
         if result:
             total_victories += 1
 
     goodie = float(total_victories/size)
-    # print(f"Worked {100*goodie}% of the time.")
+    if verbose:
+        print(f"Worked {100*goodie}% of the time.")
 
-    # if controllability:
-        # print("It's dynamically controllable!")
-    # else:
-       #  print("It is not dynamically controllable.")
     return goodie
 
 ##
-# \fn dispatch(network)
+# \fn dispatch(network, dc_network, realization, contingent_map,
+#           uncontrollable_events, verbose)
+# \brief run an early-first scheduling algorithm on a network
+#
+# @param network                The original STNU we are scheduling on
+# @param dc_network             The modified STNU with inferred constraints
+# @param realization            An assignment of values for contingent edges
+# @param contingent_map         A dictionary for contingent edges
+# @param uncontrollable_events  A collection of uncontrollables
+# @param verbose                Prints extra statements when set to True
 def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
-    if verbose:
-        print("The original network is")
-        print(network)
-    ## Dispatch the modified network
-    # Assume we have a zero reference point
+    # Dispatch the modified network and ssume we have a zero reference point
     enabled = {ZERO_ID}
     not_executed = set(dc_network.verts.keys())
     executed = set()
@@ -122,7 +112,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
     time_windows = {event: [0, float('inf')] for event in not_executed}
     current_event = ZERO_ID
-    # print("Beginning dispatch...")
+    if verbose:
+        print("Beginning dispatch...")
     while len(not_executed) > 0:
         # Find next event to execute
         min_time = float('inf')
@@ -164,7 +155,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
         if verbose:
             if is_uncontrollable:
-                print("This event is uncontrollable!!!")
+                print("This event is uncontrollable!")
         current_time = min_time
         schedule[current_event] = current_time
 
@@ -203,19 +194,13 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         # Propagate the constraints
         for nodes, edge in dc_network.normal_edges.items():
             if edge.i == current_event:
-                # print("Looking at edge", edge)
                 new_upper_bound = edge.weight + current_time
                 if new_upper_bound < time_windows[edge.j][1]:
                     time_windows[edge.j][1] = new_upper_bound
-                    # assert new_upper_bound >= time_windows[edge.j][0], \
-                    #         f"Incompatible window {edge.j}: {time_windows[edge.j]}"
             if edge.j == current_event:
-                # print("Looking at edge", edge)
                 new_lower_bound = current_time - edge.weight
                 if new_lower_bound > time_windows[edge.i][0]:
                     time_windows[edge.i][0] = new_lower_bound
-                    # assert new_lower_bound <= time_windows[edge.i][1], \
-                    #         f"Incompatible window {edge.i}: {time_windows[edge.i]}."
 
         # Add newly enabled events
         for event in not_executed:
@@ -223,16 +208,12 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 print("***")
                 print("Checking event", event)
             if (event not in enabled) and (event not in uncontrollable_events):
-                # Check if the event is enabled
-               #  print("***")
-               #  print(f"Checking if {event} is enabled...")
                 ready = True
                 outgoing_reqs = dc_network.verts[event].outgoing_normal
                 # Check required constraints
                 for edge in outgoing_reqs:
                     # For required
                     if edge.weight < 0:
-                    #     print("Need to occur after", edge.j)
                         if edge.j not in executed:
                             if verbose:
                                 print(event, "was not enabled because of",
@@ -246,7 +227,6 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     if edge.weight < 0:
                         label_wait = (edge.parent not in executed)
                         main_wait = (edge.j not in executed)
-                  #       print("Need to occur after", edge.parent, "and", edge.j)
                         if label_wait and main_wait:
                             ready = False
                             if verbose:
@@ -257,28 +237,18 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                     if verbose:
                         print("Looks like we enabled", event)
                     enabled.add(event)
-                # print("***")
 
-    # The realization should have been preserved
-    # for src, sink in contingent_map:
-
+    # The realization should be preserved for src, sink in contingent_map
     if verbose:
         print("\n\nFinal schedule is: ")
         print(schedule)
         print("Network is: ")
         print(network)
+
     good = empirical.scheduleIsValid(network, schedule)
     if verbose:
-        msg = "We're good" if good else "We're dead"
+        msg = "We're safe!" if good else "We failed!"
         print(msg)
-    # # for k, v in schedule.items():
-    # #     # if k == 0:
-    # #     if k != -1:
-    # #         print(f"Event {k} was assigned time {v}")
-    # #     else:
-    # #         print(f"Event {k} occurred {v - schedule[k-1]} seconds"
-    # #                 f" after event {k-1}.")
-    # return good
     return good
 
 ##
