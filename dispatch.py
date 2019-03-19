@@ -5,26 +5,24 @@ import empirical
 import random
 import json
 
-
-# For faster checking, recently added (just for safely_scheduled)
+# For faster checking in safely_scheduled
 import simulation as sim
 
 ##
 # \file dispatch.py
 # \brief Hosts method to dispatch STNUs that were modified by the
 #        old dynamic checking algorithm
-# \note More exposition can be found in: 
+# \note More detailed explanation about the dispatch algorithm can be found in:
 #       https://pdfs.semanticscholar.org/0313/af826f45d090a63fd5d787c92321666115c8.pd
 
 ZERO_ID = 0
-LARGE_NUMBER = 1000000000000000
 
 ##
 # \fn simulate_and_save(file_names)
 # \brief Keep track of dispatch results on networks
 def simulate_and_save(file_names: list, size: int, out_name: str):
     rates = {}
-    # Loop through files and record the dispatch success rates and 
+    # Loop through files and record the dispatch success rates and
     # approximated probabilities
     for name in file_names:
         success_rate = simulate_file(name, size)
@@ -61,12 +59,12 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 
     controllability = dc_network.is_DC()
     # print("Finished checking DC...")
-   
+
     # If the network has a suspicious life, set it right
     # (looks for inconsistency in one fixed edge)
     ###########
     verts = dc_network.verts.keys()
-    for vert in verts: 
+    for vert in verts:
         if (vert, vert) in dc_network.edges:
             # print("Checking", vert)
             edge = dc_network.edges[vert, vert][0]
@@ -90,15 +88,15 @@ def simulation(network: STN, size: int, verbose = False) -> float:
         # print(copy)
         # print("The original version looks like: ")
         # print(dc_network)
-        result = dispatch(network, copy, realization, 
+        result = dispatch(network, copy, realization,
                 contingents, uncontrollables, verbose)
         # print("Completed a simulation.")
         if result:
             total_victories += 1
-    
+
     goodie = float(total_victories/size)
     # print(f"Worked {100*goodie}% of the time.")
-    
+
     # if controllability:
         # print("It's dynamically controllable!")
     # else:
@@ -107,7 +105,7 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 
 ##
 # \fn dispatch(network)
-def dispatch(network: STN, dc_network: DC_STN, realization: dict, 
+def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
     if verbose:
@@ -119,7 +117,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
     not_executed = set(dc_network.verts.keys())
     executed = set()
     current_time = 0.0
-    
+
     schedule = {}
 
     time_windows = {event: [0, float('inf')] for event in not_executed}
@@ -137,7 +135,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
             print("Currently enabled: ", enabled)
             print("Already executed: ", executed)
             print("Still needs to be executed: ", not_executed)
-        
+
         # Pick an event to schedule
         for event in enabled:
             lower_bound = time_windows[event][0]
@@ -149,15 +147,15 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 # Check that the wait constraints on the event are satisfied
                 waits = dc_network.verts[event].outgoing_upper
                 lower_bound = time_windows[event][0]
-                
+
                 for edge in waits:
                     if edge.parent != event:
                         if (edge.parent not in executed):
                             if edge.j not in executed:
                                 continue
-                            lower_bound = max(lower_bound, 
+                            lower_bound = max(lower_bound,
                                     schedule[edge.j] - edge.weight)
-                
+
                 if lower_bound < min_time:
                     min_time = lower_bound
                     current_event = event
@@ -175,7 +173,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
             if verbose:
                 print("------------------------------------------------------")
                 print("Failed -- event", current_event, "violated a constraint.")
-                print(f"At this time, we still had {len(not_executed)} " 
+                print(f"At this time, we still had {len(not_executed)} "
                         f"out of {len(dc_network.verts)} events left to schedule")
                 verbose = False
                 print("------------------------------------------------------")
@@ -232,16 +230,16 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                 outgoing_reqs = dc_network.verts[event].outgoing_normal
                 # Check required constraints
                 for edge in outgoing_reqs:
-                    # For required 
+                    # For required
                     if edge.weight < 0:
                     #     print("Need to occur after", edge.j)
                         if edge.j not in executed:
                             if verbose:
-                                print(event, "was not enabled because of", 
+                                print(event, "was not enabled because of",
                                         edge)
                             ready = False
                             break
-                
+
                 # Check wait constraints
                 outgoing_upper = dc_network.verts[event].outgoing_upper
                 for edge in outgoing_upper:
@@ -311,8 +309,8 @@ def main():
 
     # good_list = range(1, 48)
     # good_list = [25]
-    # bad_set = {17} 
-    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set] 
+    # bad_set = {17}
+    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
     file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
 
     for name in file_names:
