@@ -254,7 +254,6 @@ def DC_Checker(STN, report=True):
     negNodes = G.getNegNodes()
     novel = []
     preds = {}
-    # cycles = []
 
     for v in negNodes:
         result, edges, end = DCDijkstra(G, v, preds, novel, \
@@ -268,13 +267,6 @@ def DC_Checker(STN, report=True):
             for e in edges:
                 weight += e.weight
 
-            # cycles.append((bounds, weight))
-
             return False, conflicts, bounds, weight
-
-    # if cycles == []:
-    #     return True, []
-    # else:
-    #     return False, cycles
 
     return True, [], {}, 0
