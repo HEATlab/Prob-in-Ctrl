@@ -34,9 +34,6 @@ class Vertex(object):
 
 
 
-
-
-
 ## \class Edge
 #  \brief represents an STN constraint
 #  \note distribution is the name of the distribution only
@@ -125,8 +122,6 @@ class Edge(object):
     def __repr__(self):
         return "Edge {} => {} [{}, {}], ".format(self.i, self.j,
                             -self.Cji, self.Cij) + "type: " + self.type
-
-
 
 
 
@@ -309,10 +304,6 @@ class STN(object):
             self.parent[j] = i
 
         self.edges[(i,j)] = edge
-
-
-
-
 
 
 
@@ -650,8 +641,6 @@ class STN(object):
 
 
 
-
-
     ##
     # \brief set the makespan of the STN
     #
@@ -681,8 +670,6 @@ class STN(object):
             for vert in self.verts:
                 if vert != 0:
                     self.modifyEdge(0, vert, makespan)
-
-
 
 
     ##
@@ -725,7 +712,6 @@ class STN(object):
         outfile.close()
 
 
-
     ##
     #  \brief Runs the Floyd-Warshal algorithm on an STN
     #
@@ -758,10 +744,6 @@ class STN(object):
     # @return Returns true if the given STN is consistent. Otherwise, returns
     #         False
     def isConsistent(self):
-        # start = time.time()
-        # res = self.minimal() != None
-        # end = time.time()
-        # print(end - start)
         return self.minimal() != None
 
     ##
@@ -770,7 +752,6 @@ class STN(object):
     # Uses Floyd Warshall to check for consistency. Is hopefull quicker than the
     # the old isConsistent function.
     def altConsistent(self):
-        # start = time.time()
         # Number of vertices
         events = list(self.verts.keys())
         n = len(events)
@@ -792,12 +773,8 @@ class STN(object):
 
             for i in events:
                 if dp[i,i] < 0:
-                    # end = time.time()
-                    # print(end - start)
                     return False
 
-        # end = time.time()
-        # print(start - end)
         return True
 
 
