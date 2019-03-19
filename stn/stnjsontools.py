@@ -2,7 +2,7 @@
 # \file stnjsontools.py
 #
 # \brief Contains library functions for reading JSON files that represent STNs.
-#
+# \note This is legacy from the RobotBrunch project.
 
 
 import json

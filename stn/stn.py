@@ -5,6 +5,7 @@ import json
 
 ## \file stntools.py
 #  \brief tools for working with STNs
+#  \note this is legacy from the RobotBrunch project
 
 ## \class Vertex
 #  \brief Represents an STN timepoint
@@ -765,7 +766,7 @@ class STN(object):
 
     ##
     # \fn altConsistent(self)
-    # 
+    #
     # Uses Floyd Warshall to check for consistency. Is hopefull quicker than the
     # the old isConsistent function.
     def altConsistent(self):
@@ -815,7 +816,7 @@ class STN(object):
     # @return Returns True if STNU is strongly controllable, and False otherwise
     #         If returnSTN is True, then also return the reduced STN
     #
-    # NOTE: This function is not reliable!!
+    # NOTE: This function has not been tested, and might not be reliable!!
     def isStronglyControllable(self, debug=False, returnSTN = False):
 
         if not self.isConsistent():
