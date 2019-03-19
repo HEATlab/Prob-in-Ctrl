@@ -237,24 +237,6 @@ def relaxSearch(STN):
         if not epsilons:
             print("The STNU cannot resolve the conflict...")
             return None, 0, None
-        #
-        # if nlp:
-        #     status, epsilons = relaxNLP(bounds, weight)
-        # else:
-        #     status, epsilons = relaxDeltaLP(bounds, weight)
-        #
-        # if status != 'Optimal':
-        #     print("The STNU cannot resolve the conflict...")
-        #     return None, 0
-        #
-        # original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
-        #
-        # for i, j in changed:
-        #     x, y = shrinked[(i, j)]
-        #     if bounds['contingent'][(i, j)][1] == 'UPPER':
-        #         STN.modifyEdge(i, j, y)
-        #     else:
-        #         STN.modifyEdge(j, i, -x)
 
         for (i,j) in list(STN.contingentEdges.keys()):
             if j not in list(epsilons.keys()):
