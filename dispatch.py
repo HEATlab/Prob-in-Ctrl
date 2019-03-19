@@ -99,6 +99,8 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 # @param contingent_map         A dictionary for contingent edges
 # @param uncontrollable_events  A collection of uncontrollables
 # @param verbose                Prints extra statements when set to True
+#
+# @post A flag which is True precisely when dispatch is succeeds 
 def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
