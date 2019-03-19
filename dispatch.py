@@ -18,7 +18,7 @@ import simulation as sim
 ZERO_ID = 0
 
 ##
-# \fn simulate_and_save(file_names)
+# \fn simulate_and_save(file_names, size, out_name)
 # \brief Keep track of dispatch results on networks
 def simulate_and_save(file_names: list, size: int, out_name: str):
     rates = {}
@@ -35,6 +35,7 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 
 ##
 # \fn simulate_file(file_name, size)
+# \brief Record dispatch result for single file
 def simulate_file(file_name, size, verbose = False) -> float:
     network = loadSTNfromJSONfile(file_name)
     result = simulation(network, size, verbose)
@@ -91,7 +92,7 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 ##
 # \fn dispatch(network, dc_network, realization, contingent_map,
 #           uncontrollable_events, verbose)
-# \brief run an early-first scheduling algorithm on a network
+# \brief Run an early-first scheduling algorithm on a network
 #
 # @param network                The original STNU we are scheduling on
 # @param dc_network             The modified STNU with inferred constraints
@@ -100,7 +101,7 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 # @param uncontrollable_events  A collection of uncontrollables
 # @param verbose                Prints extra statements when set to True
 #
-# @post A flag which is True precisely when dispatch is succeeds 
+# @post A flag which is True precisely when dispatch is succeeds
 def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
 
@@ -255,38 +256,9 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
 
 ##
 # \fn generate_realization(network)
+# \brief Uniformly at random pick values for contingent edges in STNU
 def generate_realization(network: STN) -> dict:
     realization = {}
     for nodes, edge in network.contingentEdges.items():
         realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
     return realization
-
-
-def main():
-    ### Testing
-    SAMPLE_SIZE = 1000
-    # rel_path = "stnudata/uncertain/"
-    # beg = "uncertain"
-    beg = "new_uncertain"
-    end = ".json"
-
-    rel_path = "stnudata/more_uncertain/"
-
-    # good_list = list(range(1,32))
-    # BAD: 10, 21, 24, 27, 29
-    good_list = [83]
-    # bad_set = {10, 21, 24, 27, 29}
-    bad_set = set()
-    # good_list = [17]
-
-    # good_list = range(1, 48)
-    # good_list = [25]
-    # bad_set = {17}
-    # file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
-    file_names = [f"{rel_path}{beg}{j}{end}" for j in good_list if j not in bad_set]
-
-    for name in file_names:
-        res = simulate_file(name, SAMPLE_SIZE, verbose=False)
-
-if __name__ == "__main__":
-    main()
