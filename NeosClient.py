@@ -19,7 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
 """
 Python source code - Python XML-RPC client for NEOS Server
 """
@@ -33,10 +32,9 @@ import time
 import glob
 import json
 try:
- import xmlrpc.client as xmlrpclib
+    import xmlrpc.client as xmlrpclib
 except ImportError:
- import xmlrpclib
-
+    import xmlrpclib
 
 ##
 # \file NeosClient.py
@@ -55,10 +53,11 @@ except ImportError:
 #          a job with username and password, you can view the job status in
 #          neos server account
 #
-# @param xml_name       The filename/path to the xml file we want to process
-# @param username       The username of your account to the neos server
-# @param user_password       The password of your account to the neos server
-# @param output         Flag indicating whether we want to report final result
+# @param xml_name           The filename/path to the xml file we want to process
+# @param username           The username of your account to the neos server
+# @param user_password      The password of your account to the neos server
+# @param output             Flag indicating whether we want to report
+#                           final result
 #
 # @return if output, return the objective value from the final result
 def getObjValue(xml_name, outfolder, username=None, \
@@ -67,72 +66,76 @@ def getObjValue(xml_name, outfolder, username=None, \
 
     alive = neos.ping()
     if alive != "NeosServer is alive\n":
-       sys.stderr.write("Could not make connection to NEOS Server\n")
-       sys.exit(1)
+        sys.stderr.write("Could not make connection to NEOS Server\n")
+        sys.exit(1)
 
     if xml_name == "queue":
-       msg = neos.printQueue()
-       sys.stdout.write(msg)
+        msg = neos.printQueue()
+        sys.stdout.write(msg)
     else:
-       xml = ""
-       try:
-           xmlfile = open(xml_name, "r")
-           buffer = 1
-           while buffer:
-               buffer = xmlfile.read()
-               xml += buffer
-           xmlfile.close()
-       except IOError as e:
-           sys.stderr.write("I/O error(%d): %s\n" % (e.errno, e.strerror))
-           sys.exit(1)
-       if username and user_password:
-           (jobNumber, password) = neos.authenticatedSubmitJob(xml, username, user_password)
-       else:
-           (jobNumber, password) = neos.submitJob(xml)
+        xml = ""
+        try:
+            xmlfile = open(xml_name, "r")
+            buffer = 1
+            while buffer:
+                buffer = xmlfile.read()
+                xml += buffer
+            xmlfile.close()
+        except IOError as e:
+            sys.stderr.write("I/O error(%d): %s\n" % (e.errno, e.strerror))
+            sys.exit(1)
+        if username and user_password:
+            (jobNumber, password) = neos.authenticatedSubmitJob(
+                xml, username, user_password)
+        else:
+            (jobNumber, password) = neos.submitJob(xml)
 
-       start = time.time()
+        start = time.time()
 
-       p, f = os.path.split(xml_name)
-       fname = os.path.join(outfolder, f[:-4] + '.txt')
-       file = open(fname, 'w')
-       file.write("Job number = %d\nJob password = %s\n" % (jobNumber, password))
+        p, f = os.path.split(xml_name)
+        fname = os.path.join(outfolder, f[:-4] + '.txt')
+        file = open(fname, 'w')
+        file.write(
+            "Job number = %d\nJob password = %s\n" % (jobNumber, password))
 
-       sys.stdout.write("Job number = %d\nJob password = %s\n" % (jobNumber, password))
-       if jobNumber == 0:
-           sys.stderr.write("NEOS Server error: %s\n" % password)
-           sys.exit(1)
-       else:
-           offset = 0
-           status = ""
-           while status != "Done":
-               end = time.time()
-               if end-start >= 70:
-                   file.write('\nJob still processing...\n')
-                   file.close()
-                   print("Job hasn't finished processing yet...")
-                   return 'waiting'
+        sys.stdout.write(
+            "Job number = %d\nJob password = %s\n" % (jobNumber, password))
+        if jobNumber == 0:
+            sys.stderr.write("NEOS Server error: %s\n" % password)
+            sys.exit(1)
+        else:
+            offset = 0
+            status = ""
+            while status != "Done":
+                end = time.time()
+                if end - start >= 70:
+                    file.write('\nJob still processing...\n')
+                    file.close()
+                    print("Job hasn't finished processing yet...")
+                    return 'waiting'
 
-               time.sleep(1)
-               status = neos.getJobStatus(jobNumber, password)
+                time.sleep(1)
+                status = neos.getJobStatus(jobNumber, password)
 
-           msg = neos.getFinalResults(jobNumber, password)
+            msg = neos.getFinalResults(jobNumber, password)
 
-           decoded_msg = msg.data.decode()
-           objective_pattern = re.compile("\nObjective ([\+0-9.e-]+)\n")
+            decoded_msg = msg.data.decode()
+            objective_pattern = re.compile("\nObjective ([\+0-9.e-]+)\n")
 
-           if output:
-               out = objective_pattern.findall(decoded_msg)
-               print(out)
-               if len(out) == 0:
-                   file.write("\nPossibly unbounded...\n")
-                   file.close()
-                   return None
+            if output:
+                out = objective_pattern.findall(decoded_msg)
+                print(out)
+                if len(out) == 0:
+                    file.write("\nPossibly unbounded...\n")
+                    file.close()
+                    return None
 
-               file.write("Objective Value: {}".format(float(out[0])))
-               file.close()
-               return float(out[0])
-           else:
-               sys.stdout.write(decoded_msg)
+                file.write("Objective Value: {}".format(float(out[0])))
+                file.close()
+                return float(out[0])
+            else:
+                sys.stdout.write(decoded_msg)
+
 
 ##
 # \fn main()
@@ -153,7 +156,6 @@ def main():
         print("Processing: ", f)
         obj = getObjValue(fname, outfolder, username, password, True)
 
-
         print('Timer started. ')
         time.sleep(60)
         print('One minute passed...\n')
@@ -169,6 +171,7 @@ def main():
 
     with open('result.json', 'w') as f:
         json.dump(result, f)
+
 
 if __name__ == '__main__':
     main()

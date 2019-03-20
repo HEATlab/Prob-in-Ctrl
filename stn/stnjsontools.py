@@ -4,9 +4,22 @@
 # \brief Contains library functions for reading JSON files that represent STNs.
 # \note This is legacy from the RobotBrunch project.
 
-
 import json
 from stn import STN
+
+
+##
+# \fn loadSTNfromJSONfile
+# \brief Wrapper function for loadSTNfromJSON to allow reading from files.
+#
+# @param filepath       Path of file to read in
+# @param using_PSTN     Flag indicating whether the input STN is a PSTN
+#
+# @return Returns a STN object loaded from the json object
+def loadSTNfromJSONfile(filepath, using_PSTN=False):
+    with open(filepath, 'r') as f:
+        stn = loadSTNfromJSON(f.read(), using_PSTN=using_PSTN)
+    return stn
 
 
 ##
@@ -21,20 +34,6 @@ from stn import STN
 def loadSTNfromJSON(json_str, using_PSTN=False):
     jsonSTN = json.loads(json_str)
     return loadSTNfromJSONobj(jsonSTN, using_PSTN=using_PSTN)
-
-
-##
-# \fn loadSTNfromJSONfile
-# \brief Wrapper function for loadSTNfromJSON to allow reading from files.
-#
-# @param filepath       Path of file to read in
-# @param using_PSTN     Flag indicating whether the input STN is a PSTN
-#
-# @return Returns a STN object loaded from the json object
-def loadSTNfromJSONfile(filepath, using_PSTN=False):
-    with open(filepath,'r') as f:
-        stn = loadSTNfromJSON(f.read(),using_PSTN=using_PSTN)
-    return stn
 
 
 ##
@@ -56,21 +55,15 @@ def loadSTNfromJSONobj(jsonSTN, using_PSTN=False):
     for v in jsonSTN['nodes']:
         stn.addVertex(v['node_id'])
 
-
     # Add the edges
     for e in jsonSTN['constraints']:
         if using_PSTN and 'distribution' in e:
-            stn.addEdge(e['first_node'],
-                        e['second_node'],
-                        float(e['min_duration']),
-                        float(e['max_duration']),
-                        e['type'],
-                        e['distribution']['name'])
+            stn.addEdge(e['first_node'], e['second_node'],
+                        float(e['min_duration']), float(e['max_duration']),
+                        e['type'], e['distribution']['name'])
         else:
-            stn.addEdge(e['first_node'],
-                        e['second_node'],
-                        float(e['min_duration']),
-                        float(e['max_duration']),
+            stn.addEdge(e['first_node'], e['second_node'],
+                        float(e['min_duration']), float(e['max_duration']),
                         e['type'])
 
     return stn

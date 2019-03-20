@@ -12,6 +12,7 @@ import random
 MAX_FLOAT = 100000000000000000.0
 ZERO_ID = 0
 
+
 ##
 # \fn early_execution(network, realization)
 # \brief Runs an STNU simulation where the agent follows an early execution strategy
@@ -68,8 +69,10 @@ def early_execution(network: STN, realization: dict) -> bool:
         # We only care about events being moved later in time
         relevant_edges = network.getEdges(activated_event)
         for edge in relevant_edges:
-            if (edge.j == activated_event) and (edge.i not in all_uncontrollables):
-                if needs_early_update(edge, activated_event, current_time, true_weight):
+            if (edge.j == activated_event) and (
+                    edge.i not in all_uncontrollables):
+                if needs_early_update(edge, activated_event, current_time,
+                                      true_weight):
                     lower_bound = current_time - edge.Cij
                     true_weight[edge.i] = lower_bound
 
@@ -91,9 +94,10 @@ def dispatch(network: STN, sample_size: int) -> float:
     for sample in range(sample_size):
         if simulate_once(network):
             successes += 1
-    success_rate = float(successes/sample_size)
+    success_rate = float(successes / sample_size)
     print(f"Dispatch was succesful {100*success_rate}% of the time.")
-    return float(successes/sample_size)
+    return float(successes / sample_size)
+
 
 ##
 # \fn simulate_once(network)
@@ -110,6 +114,7 @@ def simulate_once(network: STN) -> bool:
         realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
     # Run the simulation
     return early_execution(network, realization)
+
 
 # -------------------------------------------------------------------------
 #  Simulation Helpers
@@ -156,6 +161,7 @@ def safely_scheduled(network: STN, partial: dict, event) -> bool:
                 print("Violated constraint", edge)
                 return False
     return True
+
 
 # -------------------------------------------------------------------------
 #  Modify Networks
@@ -207,6 +213,7 @@ def set_dynamic_zeropoint(network: STN):
 
     return network
 
+
 ##
 # \fn def make_graph(network)
 # \brief
@@ -229,6 +236,7 @@ def make_graph(network: STN):
 
     return graph
 
+
 ##
 # \fn get_weight(graph, event_1, event_2)
 def get_weight(graph, event_1, event_2) -> float:
@@ -241,6 +249,7 @@ def get_weight(graph, event_1, event_2) -> float:
         else:
             return weights[event_2]
 
+
 ##
 # \fn minimize_stnu(graph)
 # \brief Uses Floyd Warshall to find minimum graph
@@ -252,23 +261,25 @@ def minimize_stnu(graph):
     num_events = len(events)
 
     # DP Table -- index as dist_table[k][event_1][event_2]
-    dist_table = [{event_1: {event_2: 0
-        for event_2 in events if event_2 != event_1}
-        for event_1 in events} for k in range(num_events+1)]
+    dist_table = [{
+        event_1: {event_2: 0
+                  for event_2 in events if event_2 != event_1}
+        for event_1 in events
+    } for k in range(num_events + 1)]
     # Initialize
     for event_1 in events:
         for event_2 in events:
             if event_2 != event_1:
-                dist_table[0][event_1][event_2] = get_weight(graph, event_1, event_2)
+                dist_table[0][event_1][event_2] = get_weight(
+                    graph, event_1, event_2)
 
-
-    for k in range(1, num_events+1):
+    for k in range(1, num_events + 1):
         for event_1 in events:
             for event_2 in events:
                 if event_2 != event_1:
-                    old_weights = dist_table[k-1]
+                    old_weights = dist_table[k - 1]
                     new_weights = dist_table[k]
-                    new_event = events[k-1]
+                    new_event = events[k - 1]
 
                     old_path = old_weights[event_1][event_2]
 

@@ -10,6 +10,7 @@ from typing import List
 # \file probability.py
 # \brief Computing some probabilities for degree of dynamic controllability
 
+
 ##
 # \fn prob_small_sum(lengths, S)
 # \brief
@@ -26,13 +27,14 @@ def prob_small_sum(lengths: list, S: float) -> float:
 
     for l in lengths:
         mean += l
-        variance += l*l
-    mean = mean/2
-    variance = variance/12
+        variance += l * l
+    mean = mean / 2
+    variance = variance / 12
 
-    z_score = (S - mean)/sqrt(variance)
+    z_score = (S - mean) / sqrt(variance)
 
     return norm.cdf(z_score)
+
 
 ##
 # \fn special_prob()
@@ -43,12 +45,13 @@ def special_prob(lengths: list, S: float) -> float:
     numerator = n * log(sum(lengths) - S)
 
     log_lengths = [log(l) for l in lengths]
-    log_factorial = [log(m) for m in range(1, n+1)]
+    log_factorial = [log(m) for m in range(1, n + 1)]
     denominator = sum(log_lengths) + sum(log_factorial)
 
     log_prob = numerator - denominator
     true_prob = exp(log_prob)
     return true_prob
+
 
 ##
 # \fn prob_of_DC_file()
@@ -56,15 +59,18 @@ def prob_of_DC_file(file_name: str) -> float:
     network = loadSTNfromJSONfile(file_name)
     return prob_of_DC(network)
 
+
 def prob_of_multiple_conflicts(lengths_list: List[list], weights: List[float]):
     probability = 1.0
     m = len(lengths_list)
     assert len(weights) == m, "The input lists have different lengths!"
 
     for j in range(m):
-        probability = probability * (prob_small_sum(lengths_list[j], weights[j]))
+        probability = probability * (prob_small_sum(lengths_list[j],
+                                                    weights[j]))
 
     return probability
+
 
 ##
 # \fn prob_of_DC()

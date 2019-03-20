@@ -6,6 +6,7 @@ from scipy.stats.stats import pearsonr
 # \brief Collect correlation between success rate & DSC approximation
 #        in STNUs.
 
+
 ##
 # \fn correlation_from_file(data)
 # \brief Gets correlation from JSON file with particular format
@@ -16,6 +17,7 @@ def correlation_from_file(file_name: str) -> tuple:
     with open(file_name) as data_file:
         data = json.load(data_file)
     return correlation_of_dict(data)
+
 
 ##
 # \fn correlation_of_dict(data)
@@ -34,6 +36,7 @@ def correlation_of_dict(data: dict) -> tuple:
         y_pts.append(pt[1])
 
     return pearsonr(x_pts, y_pts)
+
 
 ##
 # \fn main()
@@ -55,8 +58,12 @@ def main():
     # Write to file
     pretty_file = open(f"{relpath}{pretty_out}", 'a')
     for file_name, stat in stats.items():
-        line: str = (f"The data in {file_name} had" "\n\tCorrelation:\t"
-                f"{stat[0]}" "\n\tP-value:\t" f"{stat[1]}" "\n\n")
+        line: str = (f"The data in {file_name} had"
+                     "\n\tCorrelation:\t"
+                     f"{stat[0]}"
+                     "\n\tP-value:\t"
+                     f"{stat[1]}"
+                     "\n\n")
         pretty_file.write(line)
     pretty_file.close()
 
@@ -64,6 +71,7 @@ def main():
     with open(f"{relpath}{raw_out}", 'w') as storage:
         json.dump(stats, storage)
     return 0
+
 
 if __name__ == '__main__':
     main()

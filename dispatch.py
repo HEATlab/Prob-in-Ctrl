@@ -17,6 +17,7 @@ import simulation as sim
 
 ZERO_ID = 0
 
+
 ##
 # \fn simulate_and_save(file_names, size, out_name)
 # \brief Keep track of dispatch results on networks
@@ -33,19 +34,21 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
         out_json.dump(rates)
     print("Results saved to", out_name)
 
+
 ##
 # \fn simulate_file(file_name, size)
 # \brief Record dispatch result for single file
-def simulate_file(file_name, size, verbose = False) -> float:
+def simulate_file(file_name, size, verbose=False) -> float:
     network = loadSTNfromJSONfile(file_name)
     result = simulation(network, size, verbose)
     if verbose:
         print(f"{file_name} worked {100*result}% of the time.")
     return result
 
+
 ##
 # \fn simulation(network, size)
-def simulation(network: STN, size: int, verbose = False) -> float:
+def simulation(network: STN, size: int, verbose=False) -> float:
     # Collect useful data from the original network
     contingent_pairs = network.contingentEdges.keys()
     contingents = {src: sink for (src, sink) in contingent_pairs}
@@ -76,18 +79,19 @@ def simulation(network: STN, size: int, verbose = False) -> float:
     for j in range(size):
         realization = generate_realization(network)
         copy = dc_network.copy()
-        result = dispatch(network, copy, realization,
-                contingents, uncontrollables, verbose)
+        result = dispatch(network, copy, realization, contingents,
+                          uncontrollables, verbose)
         if vebose:
             print("Completed a simulation.")
         if result:
             total_victories += 1
 
-    goodie = float(total_victories/size)
+    goodie = float(total_victories / size)
     if verbose:
         print(f"Worked {100*goodie}% of the time.")
 
     return goodie
+
 
 ##
 # \fn dispatch(network, dc_network, realization, contingent_map,
@@ -102,8 +106,12 @@ def simulation(network: STN, size: int, verbose = False) -> float:
 # @param verbose                Prints extra statements when set to True
 #
 # @post A flag which is True precisely when dispatch is succeeds
-def dispatch(network: STN, dc_network: DC_STN, realization: dict,
-        contingent_map: dict, uncontrollable_events, verbose = False) -> bool:
+def dispatch(network: STN,
+             dc_network: DC_STN,
+             realization: dict,
+             contingent_map: dict,
+             uncontrollable_events,
+             verbose=False) -> bool:
 
     # Dispatch the modified network and ssume we have a zero reference point
     enabled = {ZERO_ID}
@@ -148,7 +156,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                             if edge.j not in executed:
                                 continue
                             lower_bound = max(lower_bound,
-                                    schedule[edge.j] - edge.weight)
+                                              schedule[edge.j] - edge.weight)
 
                 if lower_bound < min_time:
                     min_time = lower_bound
@@ -166,9 +174,11 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         if not sim.safely_scheduled(network, schedule, current_event):
             if verbose:
                 print("------------------------------------------------------")
-                print("Failed -- event", current_event, "violated a constraint.")
-                print(f"At this time, we still had {len(not_executed)} "
-                        f"out of {len(dc_network.verts)} events left to schedule")
+                print("Failed -- event", current_event,
+                      "violated a constraint.")
+                print(
+                    f"At this time, we still had {len(not_executed)} "
+                    f"out of {len(dc_network.verts)} events left to schedule")
                 verbose = False
                 print("------------------------------------------------------")
             return False
@@ -220,7 +230,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                         if edge.j not in executed:
                             if verbose:
                                 print(event, "was not enabled because of",
-                                        edge)
+                                      edge)
                             ready = False
                             break
 
@@ -233,7 +243,8 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
                         if label_wait and main_wait:
                             ready = False
                             if verbose:
-                                print(event, "was not enabled because of", edge)
+                                print(event, "was not enabled because of",
+                                      edge)
                             break
 
                 if ready:
@@ -253,6 +264,7 @@ def dispatch(network: STN, dc_network: DC_STN, realization: dict,
         msg = "We're safe!" if good else "We failed!"
         print(msg)
     return good
+
 
 ##
 # \fn generate_realization(network)

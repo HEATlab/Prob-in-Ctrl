@@ -13,6 +13,7 @@ import sys
 # \file util.py
 # \brief helpful functions
 
+
 ##
 # \fn STNtoDCSTN(S)
 # \brief Convert an STN object to a DC_STN object
@@ -23,15 +24,22 @@ import sys
 def STNtoDCSTN(S):
     new_STN = DC_STN()
     for edge in list(S.edges.values()):
-        new_STN.addEdge(edge.i,edge.j,edge.Cij)
-        new_STN.addEdge(edge.j,edge.i,edge.Cji)
+        new_STN.addEdge(edge.i, edge.j, edge.Cij)
+        new_STN.addEdge(edge.j, edge.i, edge.Cji)
         if edge.isContingent():
-            new_STN.addEdge(edge.i, edge.j, -edge.Cji,
-                                    edge_type=edgeType.LOWER,parent=edge.j)
-            new_STN.addEdge(edge.j, edge.i, -edge.Cij,
-                                    edge_type=edgeType.UPPER,parent=edge.j)
+            new_STN.addEdge(
+                edge.i,
+                edge.j,
+                -edge.Cji,
+                edge_type=edgeType.LOWER,
+                parent=edge.j)
+            new_STN.addEdge(
+                edge.j,
+                edge.i,
+                -edge.Cij,
+                edge_type=edgeType.UPPER,
+                parent=edge.j)
     return new_STN
-
 
 
 ##
@@ -46,7 +54,6 @@ def dc_checking(STN):
     return STNtoDCSTN(STN).is_DC()
 
 
-
 ##
 # \fn dc_checking_file(filename)
 # \brief Check if an input STN is dynamically controllable
@@ -58,6 +65,7 @@ def dc_checking(STN):
 def dc_checking_file(filename):
     STN = loadSTNfromJSONfile(filename)
     return dc_checking(STN)
+
 
 ##
 # \fn normal(STN)
@@ -87,37 +95,40 @@ def normal(STN):
                 changed[new_vert] = e
                 new.addVertex(new_vert)
 
-
                 new.addEdge(e.i, new_vert, -e.Cji)
                 new.addEdge(new_vert, e.i, e.Cji)
 
                 upper = e.Cij + e.Cji
                 new.addEdge(new_vert, e.j, upper)
                 new.addEdge(e.j, new_vert, 0)
-                new.addEdge(new_vert, e.j, 0, edge_type=edgeType.LOWER,
-                                                                parent=e.j)
-                new.addEdge(e.j, new_vert, -upper, edge_type=edgeType.UPPER,
-                                                                parent=e.j)
+                new.addEdge(
+                    new_vert, e.j, 0, edge_type=edgeType.LOWER, parent=e.j)
+                new.addEdge(
+                    e.j,
+                    new_vert,
+                    -upper,
+                    edge_type=edgeType.UPPER,
+                    parent=e.j)
             else:
                 new.addEdge(e.i, e.j, e.Cij)
                 new.addEdge(e.j, e.i, e.Cji)
-                new.addEdge(e.i, e.j, -e.Cji, edge_type=edgeType.LOWER,
-                                                                parent=e.j)
-                new.addEdge(e.j, e.i, -e.Cij, edge_type=edgeType.UPPER,
-                                                                parent=e.j)
+                new.addEdge(
+                    e.i, e.j, -e.Cji, edge_type=edgeType.LOWER, parent=e.j)
+                new.addEdge(
+                    e.j, e.i, -e.Cij, edge_type=edgeType.UPPER, parent=e.j)
     return new, changed
-
 
 
 ##
 # \class PriorityQueue
 # \brief A simple Priority Queue implementation that pop the item with the
 #        lowest priority
+# \note  This code is adapted from UC Berkeley AI course project util.py file
 class PriorityQueue:
 
     ##
     # \brief PriorityQueue Constructor
-    def  __init__(self):
+    def __init__(self):
         self.queue = []
 
     ##
@@ -130,17 +141,12 @@ class PriorityQueue:
     def push(self, data, priority):
         heapq.heappush(self.queue, (priority, data))
 
-
     ##
     # \brief Pop the element with the lowest priority in Priority Queue
     #
     # @return A tuple in the form of (priority, data)
     def pop(self):
         return heapq.heappop(self.queue)
-        # popped = self.queue[0]
-        # self.queue.remove(popped)
-        # return popped
-
 
     ##
     # \brief Check if the Priority Queue has element inside
@@ -148,7 +154,6 @@ class PriorityQueue:
     # @return Return True if the queue is empty and return False otherwise
     def isEmpty(self):
         return len(self.queue) == 0
-
 
     ##
     # \brief Add or decrease the priority of an input data
