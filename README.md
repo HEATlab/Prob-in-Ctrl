@@ -42,15 +42,15 @@ These LPs are primarily attempts at linearizing the calculation for degree of st
 The main structure of the constraints remains the same accross most of the programs, but there are many different types of objective functions used.
 ##### Details
 This files contains 4 different LPs (Original LP has two different kinds objectives).
-* *Original LP (with naive objective function) :* In this LP, we are minimizing the sum of contingent intervals shrinked.
-* *Original LP :* In this LP, we are minimizing the sum of contingent intervals shrinked divided by original length of the contingent intervals.
-* *Proportion LP :* In this LP, we are shrinking all contingent edges by the
+* *Original LP (with naive objective function)*: In this LP, we are minimizing the sum of contingent intervals shrinked.
+* *Original LP*: In this LP, we are minimizing the sum of contingent intervals shrinked divided by original length of the contingent intervals.
+* *Proportion LP*: In this LP, we are shrinking all contingent edges by the
 same proportion, and we are minimizing the proportion shrinked.
-* *Maximin LP :* In this LP, we are maximizing the minimum amount we can shrink from a contingent edge.
-* *Minimax LP :* In this LP, we are minimizing the maximum amount we can shrink from a contingent edge.
+* *Maximin LP*: In this LP, we are maximizing the minimum amount we can shrink from a contingent edge.
+* *Minimax LP*: In this LP, we are minimizing the maximum amount we can shrink from a contingent edge.
 
-Through experiments, we discovered the second one (*Origin LP*) is the best approximation to the actual degree of strong controllability, and it was
-what we used for empirical testing later.
+Through experiments, we discovered that the *Original LP* was the best approximation for the degree of strong controllability.
+This method is referred to in our paper as the DSC-LP. 
 
 
 #### probability.py

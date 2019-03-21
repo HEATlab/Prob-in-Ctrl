@@ -113,7 +113,7 @@ def dispatch(network: STN,
              uncontrollable_events,
              verbose=False) -> bool:
 
-    # Dispatch the modified network and ssume we have a zero reference point
+    # Dispatch the modified network and assume we have a zero reference point
     enabled = {ZERO_ID}
     not_executed = set(dc_network.verts.keys())
     executed = set()
