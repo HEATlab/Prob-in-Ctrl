@@ -14,13 +14,11 @@ import math
 
 ##
 # \file empirical.py
-# \brief perform empirical analysis on our designed metric
-
+# \brief perform empirical analysis on degree of controllability metrics.
 
 # -------------------------------------------------------------------------
 # Strong controllability
 # -------------------------------------------------------------------------
-
 
 ##
 # \fn newInterval(STN, epsilons)
@@ -54,18 +52,14 @@ def newInterval(STN, epsilons):
 #
 # @return the value of degree of strong controllability
 def calculateMetric(original, shrinked):
-    orig = 1
-    new = 1
     for i in range(len(original)):
         x, y = original[i]
-        orig *= (y-x)
+        orig = y-x
 
         a, b = shrinked[i]
-        new *= (b-a)
+        new = b-a
 
     return new, orig, float(new/orig)
-
-
 
 ##
 # \fn scheduleIsValid(network: STN, schedule: dict) -> STN
@@ -78,7 +72,8 @@ def calculateMetric(original, shrinked):
 #
 # @return              True/False if the schedule is valid/invalid.
 def scheduleIsValid(network: STN, schedule: dict) -> STN:
-    # Check that the schedule is actually defined on all relevant vertices
+    ## Check that the schedule is actually defined on all relevant vertices
+    # This number is arbitrary - any sufficiently small, positive constant works
     epsilon = 0.001
     vertices = network.getAllVerts()
     for vertex in vertices:
@@ -124,12 +119,10 @@ def sampleOnce(original, shrinked):
         a,b = shrinked[i]
 
         real = random.uniform(x, y)
-        #print(original[i], shrinked[i], real)
         if real < a or real > b:
             return False
 
     return True
-
 
 
 ##
@@ -164,7 +157,6 @@ def altSampleOnce(STN, schedule):
     return False
 
 
-
 ##
 # \fn sample(STN, success='default', LP='original')
 # \brief Compute the success rate of an STNU by randomly sample 50000 times
@@ -193,6 +185,7 @@ def sample(STN, success='default', LP='original'):
             time = (bounds[(i, '-')].varValue + bounds[(i, '+')].varValue)/2
             schedule[i] = time
 
+    # Collect the sample data.
     count = 0
     for i in range(50000):
         result = sampleOnce(original, shrinked) if success == 'default' \
@@ -639,27 +632,9 @@ def generateParallelChain(agent, task):
         if result:
             return new
 
-        # if result:
-        #     continue
-        #
-        # print("Try if relax works...")
-        # try:
-        #     new_STN, count, cycles = relaxSearch(new.copy())
-        # except Exception:
-        #     continue
-        #
-        # print("New needs to relax {} number of times!".format(count))
-        # print("Start simulation...")
-        # success = simulation(new.copy(), 10)
-        # if success != 0:
-        #     return new
-
-
-
 # -------------------------------------------------------------------------
 #  Main function
 # -------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    #plot()
-    print("hello")
+    plot()

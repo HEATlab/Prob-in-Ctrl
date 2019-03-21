@@ -6,9 +6,6 @@ from util import *
 # \note Read Williams 2017 paper for more details on the algorithm implemented:
 #       https://www.ijcai.org/proceedings/2017/0598.pdf
 
-# TODO: Add DAG to DCDijkstra?
-
-
 # -------------------------------------------------------------------------
 # Helper Functions
 # -------------------------------------------------------------------------
@@ -29,6 +26,7 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
     result = []
 
     while True:
+        # check which edge dictionary we should use
         if v in labelDist and v in unlabelDist:
             if not labelDist[v][1]:
                 distArray = unlabelDist
@@ -39,6 +37,8 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
         else:
             distArray = unlabelDist
 
+        # add the current edge to the path and continue iterating until
+        # we reach the end node
         weight, edge = distArray[v]
         result.append(edge)
         v = edge.j
@@ -47,7 +47,6 @@ def extractEdgePath(s, v, labelDist, unlabelDist):
             break
 
     return result
-
 
 
 ##
@@ -108,15 +107,12 @@ def resolveNovel(e, novel, preds):
     return result
 
 
-
-
-
 ##
 # \fn getFinalResult(conflicts, STN, D, report=True)
 # \brief extract information about which constraint in the original STNU can
 #        be relaxed to resolve the conflict
 #
-# @param conflicts      A list labeled edges along the negative cycle
+# @param conflicts      A list of labeled edges along the negative cycle
 # @param STN            The original STNU
 # @param D              A dictionary containing info about added vertices
 # @param report         Flag indicating whether to print message or not
@@ -125,12 +121,17 @@ def resolveNovel(e, novel, preds):
 #         in the original STNU that we can relax and whether LOWER or UPPER
 #         bound can be relaxed
 def getFinalResult(conflicts, STN, D, report=True):
+    ## Initialize the result dictionary
     result = {}
     result['requirement'] = {}
     result['contingent'] = {}
+
+    ## Loop through all labeled edges in the conflict and find the
+    ## corresponding original edge in the STNU
     for edge in conflicts:
         start = edge.i
         end = edge.j
+
         if start in D:
             continue
         elif end in D:
@@ -150,23 +151,22 @@ def getFinalResult(conflicts, STN, D, report=True):
         print("Reporting Conflicts:")
 
         print("\nThe requirement edges we can relax are: ")
-        for i,j in list(result['requirement'].keys()):
-            edge, bound = result['requirement'][(i,j)]
+        for i, j in list(result['requirement'].keys()):
+            edge, bound = result['requirement'][(i, j)]
             print(edge, bound)
 
         print("\nThe contingent edges we can relax are: ")
-        for i,j in list(result['contingent'].keys()):
-            edge, bound = result['contingent'][(i,j)]
+        for i, j in list(result['contingent'].keys()):
+            edge, bound = result['contingent'][(i, j)]
             print(edge, bound)
 
-
     return result
-
 
 
 # -------------------------------------------------------------------------
 # Major Functions: DCDijkstra and DC_Checker
 # -------------------------------------------------------------------------
+
 
 ##
 # \fn DCDijkstra(G, start, preds, novel, callStack, negNodes)
@@ -181,7 +181,7 @@ def getFinalResult(conflicts, STN, D, report=True):
 # @param callStack      a list keeping track of the recurrence order
 # @param negNodes       a list of negative nodes
 #
-# @return Return True if there is not semi-reducible negative cycle in input
+# @return Return True if there is no semi-reducible negative cycle in the input
 #         labeled graph. Otherwise, return False, the edges along the
 #         negative cycle and the end node
 def DCDijkstra(G, start, preds, novel, callStack, negNodes):
@@ -220,9 +220,9 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 
             if not result:
                 if end != None:
-                   edges += extractEdgePath(start, v, labelDist, unlabelDist)
+                    edges += extractEdgePath(start, v, labelDist, unlabelDist)
                 if end == start:
-                   end = None
+                    end = None
                 return False, edges, end
 
         for edge in G.incomingEdges(v):
@@ -239,7 +239,6 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
     return True, [], None
 
 
-
 ##
 # \fn DC_Checker(STN, report=True)
 # \brief Check whether an input STNU is dynamically controllable
@@ -250,13 +249,13 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 # @param STN    an STN which we want to test
 #
 # @return Return True if the input STNU is dynamically controllable. Otherwise,
-#         return False and conflicts.
+#         return False, conflicts (in labeled graph), conflicts in original STNU,
+#         and weights of the negative cycle (conflict).
 def DC_Checker(STN, report=True):
     G, D = normal(STN.copy())
     negNodes = G.getNegNodes()
     novel = []
     preds = {}
-    # cycles = []
 
     for v in negNodes:
         result, edges, end = DCDijkstra(G, v, preds, novel, \
@@ -270,13 +269,6 @@ def DC_Checker(STN, report=True):
             for e in edges:
                 weight += e.weight
 
-            # cycles.append((bounds, weight))
-
             return False, conflicts, bounds, weight
-
-    # if cycles == []:
-    #     return True, []
-    # else:
-    #     return False, cycles
 
     return True, [], {}, 0

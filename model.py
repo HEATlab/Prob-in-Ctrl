@@ -7,13 +7,11 @@ import glob
 ## \file model.py
 #  \brief convert STNU to optimization problem in an AMPL format file
 
-
 MAX_FLOAT = 10000000000
 
 # -------------------------------------------------------------------------
 # Strong controllability
 # -------------------------------------------------------------------------
-
 
 ##
 # \fn prepare(STN)
@@ -86,8 +84,6 @@ def prepare(STN):
     Obj = Obj[:-3]
 
     return bounds, epsilons, constraints, Obj
-
-
 
 
 ##
@@ -262,4 +258,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print("hi")

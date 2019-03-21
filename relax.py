@@ -4,6 +4,7 @@ from pulp import *
 ## \file relax.py
 #  \brief relaxation algorithm for dynamic controllability
 
+
 ##
 #  \fn addConstraint(constraint,problem)
 #  \brief Adds an LP constraint to the given LP
@@ -12,7 +13,7 @@ from pulp import *
 #  @param problem    An input LP problem
 #
 #  @post LP problem with new constraint added
-def addConstraint(constraint,problem):
+def addConstraint(constraint, problem):
     problem += constraint
 
 
@@ -34,16 +35,16 @@ def getShrinked(STN, bounds, epsilons):
     shrinked = {}
     changed = []
 
-    for (i,j) in list(STN.contingentEdges.keys()):
-        edge = STN.contingentEdges[(i,j)]
+    for (i, j) in list(STN.contingentEdges.keys()):
+        edge = STN.contingentEdges[(i, j)]
         orig = (-edge.Cji, edge.Cij)
-        original[(i,j)] = orig
+        original[(i, j)] = orig
 
-        if (i,j) not in contingent or epsilons[j].varValue == 0:
-            shrinked[(i,j)] = orig
+        if (i, j) not in contingent or epsilons[j].varValue == 0:
+            shrinked[(i, j)] = orig
         else:
             eps = epsilons[j].varValue
-            _, bound = contingent[(i,j)]
+            _, bound = contingent[(i, j)]
             low, high = orig
 
             if bound == 'UPPER':
@@ -51,8 +52,8 @@ def getShrinked(STN, bounds, epsilons):
             else:
                 low += eps
 
-            shrinked[(i,j)] = (low, high)
-            changed.append((i,j))
+            shrinked[(i, j)] = (low, high)
+            changed.append((i, j))
 
     return original, shrinked, changed
 
@@ -76,14 +77,14 @@ def relaxNLP(bounds, weight, debug=False):
 
     eps = []
     for i, j in list(contingent.keys()):
-        edge, bound = contingent[(i,j)]
+        edge, bound = contingent[(i, j)]
         length = edge.Cij + edge.Cji
 
-        epsilons[j] = LpVariable('eps_%i'%j, lowBound = 0, upBound=length)
-        eps.append( 1.0 / length * epsilons[j])
+        epsilons[j] = LpVariable('eps_%i' % j, lowBound=0, upBound=length)
+        eps.append(1.0 / length * epsilons[j])
 
     s = sum([epsilons[j] for j in epsilons])
-    addConstraint(s >= -weight , prob)
+    addConstraint(s >= -weight, prob)
 
     Obj = sum(eps)
     prob += Obj, "Minimize the Uncertainty Removed"
@@ -134,14 +135,14 @@ def relaxDeltaLP(bounds, weight, debug=False):
     delta = LpVariable('delta', lowBound=0, upBound=1)
 
     for i, j in list(contingent.keys()):
-        edge, bound = contingent[(i,j)]
+        edge, bound = contingent[(i, j)]
         length = edge.Cij + edge.Cji
 
-        epsilons[j] = LpVariable('eps_%i'%j, lowBound = 0, upBound=length)
+        epsilons[j] = LpVariable('eps_%i' % j, lowBound=0, upBound=length)
         addConstraint(epsilons[j] == delta * length, prob)
 
     s = sum([epsilons[j] for j in epsilons])
-    addConstraint(s >= -weight , prob)
+    addConstraint(s >= -weight, prob)
 
     Obj = delta
     prob += Obj, "Minimize the Proportion of Uncertainty Removed"
@@ -172,8 +173,6 @@ def relaxDeltaLP(bounds, weight, debug=False):
     return status, epsilons
 
 
-
-
 ##
 # \fn optimalRelax(bounds, weight)
 # \brief optimal solution for compute relax strategy
@@ -186,9 +185,9 @@ def relaxDeltaLP(bounds, weight, debug=False):
 def optimalRelax(bounds, weight):
     contingent = [bounds['contingent'][x][0] for x in \
                                 list(bounds['contingent'].keys())]
-    contingent.sort(key=lambda x: x.Cij+x.Cji, reverse=False)
+    contingent.sort(key=lambda x: x.Cij + x.Cji, reverse=False)
 
-    length = [e.Cij+e.Cji for e in contingent]
+    length = [e.Cij + e.Cji for e in contingent]
     S = sum(length) + weight
     n = len(contingent)
     if S < 0:
@@ -197,12 +196,12 @@ def optimalRelax(bounds, weight):
     m = None
     for i in range(n):
         previous = length[:i]
-        test_sum = sum(previous) + (n-i) * length[i]
+        test_sum = sum(previous) + (n - i) * length[i]
         if test_sum >= S:
             m = i
             break
 
-    A = (S - sum(length[:m])) / (n-m)
+    A = (S - sum(length[:m])) / (n - m)
     epsilons = {}
     for e in contingent[m:]:
         epsilons[e.j] = e.Cij + e.Cji - A
@@ -223,7 +222,6 @@ def relaxSearch(STN):
     relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
-
     count = 0
     cycles = []
     weights = []
@@ -237,36 +235,19 @@ def relaxSearch(STN):
         if not epsilons:
             print("The STNU cannot resolve the conflict...")
             return None, 0, None
-        #
-        # if nlp:
-        #     status, epsilons = relaxNLP(bounds, weight)
-        # else:
-        #     status, epsilons = relaxDeltaLP(bounds, weight)
-        #
-        # if status != 'Optimal':
-        #     print("The STNU cannot resolve the conflict...")
-        #     return None, 0
-        #
-        # original, shrinked, changed = getShrinked(STN.copy(), bounds, epsilons)
-        #
-        # for i, j in changed:
-        #     x, y = shrinked[(i, j)]
-        #     if bounds['contingent'][(i, j)][1] == 'UPPER':
-        #         STN.modifyEdge(i, j, y)
-        #     else:
-        #         STN.modifyEdge(j, i, -x)
 
-        for (i,j) in list(STN.contingentEdges.keys()):
+        for (i, j) in list(STN.contingentEdges.keys()):
             if j not in list(epsilons.keys()):
                 continue
 
-            edge = STN.contingentEdges[(i,j)]
+            edge = STN.contingentEdges[(i, j)]
             if bounds['contingent'][(i, j)][1] == 'UPPER':
                 STN.modifyEdge(i, j, edge.Cij - epsilons[j])
             else:
                 STN.modifyEdge(j, i, edge.Cji - epsilons[j])
 
         count += 1
-        result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
+        result, conflicts, bounds, weight = DC_Checker(
+            STN.copy(), report=False)
 
     return STN, count, cycles, weights
