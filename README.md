@@ -11,7 +11,7 @@ The `dataset` folder hosts JSON representations of STNUs used in our research.
 These STNUs were constructed from the *ROVERS* and *CAR-SHARING* PSTNs, made by [(Santana et. al. 2016)](https://www.aaai.org/ocs/index.php/ICAPS/ICAPS16/paper/view/13138) and available [here](http://groups.csail.mit.edu/mers/datasets/scheduling/), by replacing distributions with finite intervals over all contingent edges.  
 
 Each STNU is encoded by a list of nodes and constraints between those nodes.
-Networks in the `dataset/dynamic` directory are all dynamically controllable while networks in the `dataset/uncertain` directory are consistent, but not dynamically controllable.
+All 452 STNUs in the `dataset/dynamically_controllable` directory are dynamically controllable while the 169 STNUs in the `dataset/uncontrollable` directory are consistent, but not dynamically controllable.
 
 This dataset of networks is referenced in [the paper](https://www.cs.hmc.edu/HEAT/papers/Akmal_et_al_ICAPS_2019.pdf) our team submitted to [ICAPS 2019](https://icaps19.icaps-conference.org/).
 
@@ -25,7 +25,7 @@ The remaining programs are not organized in any particular way. Because of this,
 ### Primary Programs
 
 #### algorithm.py
-Implements algorithms for checking if a network is dynamically controllable (DC).
+Implements conflict generating algorithms for checking if a STNU is dynamically controllable (DC).
 If the network is not DC, there are functions for reporting the "conflicts" that prevent the network from achieving controllability.
 ##### Details
 Implements the `DCDijkstra` algorithm described in [(Williams 2017)](https://www.ijcai.org/proceedings/2017/598).
@@ -40,6 +40,18 @@ It works by first leveraging a conversion to the `DC_STN` class to infer wait co
 Uses `PuLP` module to set up and solve several different LPs.
 These LPs are primarily attempts at linearizing the calculation for degree of strong controllability.
 The main structure of the constraints remains the same accross most of the programs, but there are many different types of objective functions used.
+##### Details
+This files contains 4 different LPs (Original LP has two different kinds objectives).
+* *Original LP (with naive objective function) :* In this LP, we are minimizing the sum of contingent intervals shrinked.
+* *Original LP :* In this LP, we are minimizing the sum of contingent intervals shrinked divided by original length of the contingent intervals.
+* *Proportion LP :* In this LP, we are shrinking all contingent edges by the
+same proportion, and we are minimizing the proportion shrinked.
+* *Maximin LP :* In this LP, we are maximizing the minimum amount we can shrink from a contingent edge.
+* *Minimax LP :* In this LP, we are minimizing the maximum amount we can shrink from a contingent edge.
+
+Through experiments, we discovered the second one (*Origin LP*) is the best approximation to the actual degree of strong controllability, and it was
+what we used for empirical testing later.
+
 
 #### probability.py
 Stores functions that, given conflicts from non-DC network, return the predicted probability of successful dispatch on those networks.
@@ -49,7 +61,7 @@ The approximation here is an application of CLT to sums of uniformly distributed
 #### relax.py
 Using the routines from `algorithm.py` and `LP.py`, defines various different ways of selecting "maximal" subintervals.
 ##### Description
-The approaches for computing subintervals in the strong controllability case involve using solutiosn from some LPs.
+The approaches for computing subintervals in the strong controllability case involve using solutions from some LPs.
 In the dynamic controllability case, the main approach implemented is the `optimalRelax` function, which is a very straightforward algorithm (with `O(k*log k)` complexity, if `k` is the number of edges in the conflict) that finds the true maximum subintervals (in the sense of maximizing resulting volume while ensuring the conflict is resolved).
 
 #### stn/stn.py
