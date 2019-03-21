@@ -1,5 +1,6 @@
 # Prob-in-Ctrl
-This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group).
+This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group). This work resulted in a publication at the 29th International Conference of Automated Planning and Scheduling (ICAPS-19) entitled *"Quantifying Degrees of Controllability for Temporal Networks with Uncertainty"*.  A pre-print is available [here](https://www.heatlab.org/papers/Akmal_et_al_ICAPS_2019.pdf).
+
 These files were migrated from the repository for Robotbrunch, a previous HEATlab team.
 The programs here serve to
 - generate STNUs, both randomly and from provided PSTN datasets,
