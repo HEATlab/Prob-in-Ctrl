@@ -1,5 +1,5 @@
 # Prob-in-Ctrl
-This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group). This work resulted in a publication at the 29th International Conference of Automated Planning and Scheduling (ICAPS-19) entitled *"Quantifying Degrees of Controllability for Temporal Networks with Uncertainty"*.  A pre-print is available [here](https://www.heatlab.org/papers/Akmal_et_al_ICAPS_2019.pdf).
+This repository contains a collection of programs written by team *Probably in Control* (part of the Summer 2018 HEATlab group). This work resulted in a publication at the 29th International Conference of Automated Planning and Scheduling (ICAPS-19) titled *"Quantifying Degrees of Controllability for Temporal Networks with Uncertainty"*.  A pre-print is available [here](https://www.heatlab.org/papers/Akmal_et_al_ICAPS_2019.pdf).
 
 These files were migrated from the repository for Robotbrunch, a previous HEATlab team.
 The programs here serve to
@@ -147,5 +147,7 @@ All teams worked at Harvey Mudd College under the supervision of [Professor Jim 
   - Explored the geometry of STNUs and degrees of controllability
 - *Acrobotics* ~ Team VivaJoon OjhaLee
   - Explored the durability of schedules in STNs and developed sumobot mascots
+  - A pre-print of their work, published in ICAPS-19, can be found [here](https://www.cs.hmc.edu/HEAT/papers/Lee_et_al_ICAPS_2019.pdf).
 - *Robot Luncheon* ~ Senior lab member Jordan R. Abrahams
   - Designed and tested the DREAM algorithm for PSTN dispatch
+  - A pre-print of his and his collaborators' work, published in ICAPS-19, can be found [here](https://www.cs.hmc.edu/HEAT/papers/Abrahams_et_al_ICAPS_2019.pdf).
