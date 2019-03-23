@@ -152,3 +152,6 @@ All teams worked at Harvey Mudd College under the supervision of [Professor Jim 
 - *Robot Luncheon* ~ Senior lab member Jordan R. Abrahams
   - Designed and tested the DREAM algorithm for PSTN dispatch
   - A pre-print of his and his collaborators' work, published in ICAPS-19, can be found [here](https://www.cs.hmc.edu/HEAT/papers/Abrahams_et_al_ICAPS_2019.pdf).
+  
+  ##License
+  This project is licensed under the terms of the MIT license.
