@@ -54,10 +54,10 @@ def newInterval(STN, epsilons):
 def calculateMetric(original, shrinked):
     for i in range(len(original)):
         x, y = original[i]
-        orig = y-x
+        orig *= y-x
 
         a, b = shrinked[i]
-        new = b-a
+        new *= b-a
 
     return new, orig, float(new/orig)
 
