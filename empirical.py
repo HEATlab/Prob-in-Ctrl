@@ -172,7 +172,7 @@ def altSampleOnce(STN, schedule):
 # @return The degree of controllability and the success rate for input STN
 def sample(STN, success='default', LP='original'):
     if LP == 'original':
-        _, bounds, epsilons = originalLP(STN.copy(), super=False, naiveObj=False)
+        _, bounds, epsilons = originalLP(STN.copy(), naiveObj=False)
     elif LP == 'proportion':
         _, _, bounds, epsilons = proportionLP(STN.copy())
     else:
