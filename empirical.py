@@ -52,6 +52,8 @@ def newInterval(STN, epsilons):
 #
 # @return the value of degree of strong controllability
 def calculateMetric(original, shrinked):
+    orig = 1
+    new = 1
     for i in range(len(original)):
         x, y = original[i]
         orig *= y-x
