@@ -6,6 +6,7 @@ from util import *
 from dispatch import *
 from probability import *
 import matplotlib.pyplot as plt
+import numpy as np
 import glob
 import json
 import os
@@ -19,6 +20,27 @@ import math
 # -------------------------------------------------------------------------
 # Strong controllability
 # -------------------------------------------------------------------------
+
+def plot_from_dict(values:dict):
+    pairs = list(values.items())
+    x_vals = [x[1][0] for x in pairs]
+    y_vals = [x[1][1] for x in pairs]
+    plt.scatter(x_vals,y_vals)
+    plt.xlabel("Degree of Strong Controllability")
+    plt.ylabel("Success Rate")
+    plt.xticks(np.arange(0, 1, step=0.2))
+    plt.show()
+
+
+def sample_from_folder(folder_name, success='default', LP='original'):
+    results = {}
+    for filename in os.listdir(folder_name):
+        STN = loadSTNfromJSONfile(folder_name + filename)
+        degree, success = sample(STN, success=success, LP=LP)
+        results[filename] = (degree, success)
+        print(filename)
+    return results
+
 
 ##
 # \fn newInterval(STN, epsilons)
@@ -172,7 +194,7 @@ def altSampleOnce(STN, schedule):
 # @return The degree of controllability and the success rate for input STN
 def sample(STN, success='default', LP='original'):
     if LP == 'original':
-        _, bounds, epsilons = originalLP(STN.copy(), super=False, naiveObj=False)
+        _, bounds, epsilons = originalLP(STN.copy(), naiveObj=False)
     elif LP == 'proportion':
         _, _, bounds, epsilons = proportionLP(STN.copy())
     else:
@@ -639,4 +661,5 @@ def generateParallelChain(agent, task):
 # -------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    plot()
+    #plot()
+    print("ran")
