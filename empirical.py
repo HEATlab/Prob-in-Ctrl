@@ -6,6 +6,7 @@ from util import *
 from dispatch import *
 from probability import *
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 import numpy as np
 import glob
 import json
@@ -21,6 +22,16 @@ import math
 # Strong controllability
 # -------------------------------------------------------------------------
 
+def identify_outliers(values:dict, threshold):
+    pairs = list(values.items())
+    x_vals = [x[1][0] for x in pairs]
+    y_vals = [x[1][1] for x in pairs]
+    outliers = []
+    for i in range(len(x_vals)):
+        if abs(x_vals[i] - y_vals[i]) > threshold:
+            outliers.append(pairs[i])
+    return outliers
+
 def plot_from_dict(values:dict):
     pairs = list(values.items())
     x_vals = [x[1][0] for x in pairs]
@@ -32,11 +43,11 @@ def plot_from_dict(values:dict):
     plt.show()
 
 
-def sample_from_folder(folder_name, success='default', LP='original'):
+def sample_from_folder(folder_name, gauss=False, success='default', LP='original'):
     results = {}
     for filename in os.listdir(folder_name):
         STN = loadSTNfromJSONfile(folder_name + filename)
-        degree, success = sample(STN, success=success, LP=LP)
+        degree, success = sample(STN, success=success, LP=LP, gauss=gauss)
         results[filename] = (degree, success)
         print(filename)
     return results
@@ -73,17 +84,28 @@ def newInterval(STN, epsilons):
 # @param shrinked       A list of shrinked contingent intervals
 #
 # @return the value of degree of strong controllability
-def calculateMetric(original, shrinked):
-    orig = 1
-    new = 1
-    for i in range(len(original)):
-        x, y = original[i]
-        orig *= y-x
+def calculateMetric(original, shrinked, gauss=False):
+    if gauss==False:
+        orig = 1
+        new = 1
+        for i in range(len(original)):
+            x, y = original[i]
+            orig *= y-x
 
-        a, b = shrinked[i]
-        new *= b-a
+            a, b = shrinked[i]
+            new *= b-a
+        return new, orig, float(new/orig)
+    else:
+        total = 1
+        for i in range(len(original)):
+            x, y = original[i]
+            mean = (x + y)/2
+            sd = (y - mean)/2
+            a, b = shrinked[i]
+            total *= norm.cdf(b, mean, sd) - norm.cdf(a, mean, sd)
+            
+        return total
 
-    return new, orig, float(new/orig)
 
 ##
 # \fn scheduleIsValid(network: STN, schedule: dict) -> STN
@@ -137,12 +159,14 @@ def scheduleIsValid(network: STN, schedule: dict) -> STN:
 #
 # @return Return True if the random realization falls into the strongly
 #         controllable region. Return False otherwise
-def sampleOnce(original, shrinked):
+def sampleOnce(original, shrinked, gauss=False):
     for i in range(len(original)):
         x,y = original[i]
         a,b = shrinked[i]
-
-        real = random.uniform(x, y)
+        if gauss==False:
+            real = random.uniform(x, y)
+        else:
+            real = random.normalvariate((x+y)/2, (y-x)/4)
         if real < a or real > b:
             return False
 
@@ -192,7 +216,7 @@ def altSampleOnce(STN, schedule):
 # @param LP       The type of LP we want to use
 #
 # @return The degree of controllability and the success rate for input STN
-def sample(STN, success='default', LP='original'):
+def sample(STN, success='default', LP='original', gauss=False):
     if LP == 'original':
         _, bounds, epsilons = originalLP(STN.copy(), naiveObj=False)
     elif LP == 'proportion':
@@ -201,7 +225,10 @@ def sample(STN, success='default', LP='original'):
         _, _, bounds, epsilons = maxminLP(STN.copy())
 
     original, shrinked = newInterval(STN, epsilons)
-    degree = calculateMetric(original, shrinked)[2]
+    if gauss == False:
+        degree = calculateMetric(original, shrinked)[2]
+    else: 
+        degree = calculateMetric(original, shrinked, gauss)
 
     schedule = {}
     for i in list(STN.verts.keys()):
@@ -212,7 +239,7 @@ def sample(STN, success='default', LP='original'):
     # Collect the sample data.
     count = 0
     for i in range(50000):
-        result = sampleOnce(original, shrinked) if success == 'default' \
+        result = sampleOnce(original, shrinked, gauss) if success == 'default' \
                                 else altSampleOnce(STN, schedule.copy())
         if result:
             count += 1
