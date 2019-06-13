@@ -81,7 +81,7 @@ def simulation(network: STN, size: int, verbose=False) -> float:
         copy = dc_network.copy()
         result = dispatch(network, copy, realization, contingents,
                           uncontrollables, verbose)
-        if vebose:
+        if verbose:
             print("Completed a simulation.")
         if result:
             total_victories += 1
