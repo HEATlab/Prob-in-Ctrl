@@ -46,10 +46,12 @@ def plot_from_dict(values:dict):
 def sample_from_folder(folder_name, gauss=False, success='default', LP='original'):
     results = {}
     for filename in os.listdir(folder_name):
-        STN = loadSTNfromJSONfile(folder_name + filename)
-        degree, success = sample(STN, success=success, LP=LP, gauss=gauss)
-        results[filename] = (degree, success)
+        #print("-----------------------------")
         print(filename)
+        STN = loadSTNfromJSONfile(folder_name + filename)
+        degree, success_rate = sample(STN, success, LP, gauss)
+        results[filename] = (degree, success_rate)
+        #print("-----------------------------")
     return results
 
 
@@ -85,7 +87,7 @@ def newInterval(STN, epsilons):
 #
 # @return the value of degree of strong controllability
 def calculateMetric(original, shrinked, gauss=False):
-    if gauss==False:
+    if not gauss:
         orig = 1
         new = 1
         for i in range(len(original)):
@@ -102,7 +104,8 @@ def calculateMetric(original, shrinked, gauss=False):
             mean = (x + y)/2
             sd = (y - mean)/2
             a, b = shrinked[i]
-            total *= norm.cdf(b, mean, sd) - norm.cdf(a, mean, sd)
+            prob_contained = norm.cdf(b, mean, sd) - norm.cdf(a, mean, sd)
+            total *= prob_contained
             
         return total
 
@@ -163,7 +166,7 @@ def sampleOnce(original, shrinked, gauss=False):
     for i in range(len(original)):
         x,y = original[i]
         a,b = shrinked[i]
-        if gauss==False:
+        if not gauss:
             real = random.uniform(x, y)
         else:
             real = random.normalvariate((x+y)/2, (y-x)/4)
@@ -181,10 +184,15 @@ def sampleOnce(original, shrinked, gauss=False):
 # @param schedule       A dictionary with the fixed decision
 #
 # @return a schedule for the given STNU
-def getSchedule(STN, schedule):
+def getSchedule(STN, schedule, gauss):
     for edge in list(STN.contingentEdges.values()):
         start_time = schedule[edge.i]
-        real = random.uniform(-edge.Cji, edge.Cij)
+        x = -edge.Cji
+        y = edge.Cij
+        if gauss:
+            real = random.normalvariate((x+y)/2, (y-x)/4)
+        else:
+            real = random.uniform(x, y)
         time = start_time + real
         schedule[edge.j] = time
     return schedule
@@ -198,8 +206,8 @@ def getSchedule(STN, schedule):
 # @param schedule       A dictionary with the fixed decision
 #
 # @return Return True if the schedule generate is valid. Return False otherwise
-def altSampleOnce(STN, schedule):
-    s = getSchedule(STN, schedule)
+def altSampleOnce(STN, schedule, gauss):
+    s = getSchedule(STN, schedule, gauss)
     if scheduleIsValid(STN, s):
         return True
     return False
@@ -225,7 +233,7 @@ def sample(STN, success='default', LP='original', gauss=False):
         _, _, bounds, epsilons = maxminLP(STN.copy())
 
     original, shrinked = newInterval(STN, epsilons)
-    if gauss == False:
+    if not gauss:
         degree = calculateMetric(original, shrinked)[2]
     else: 
         degree = calculateMetric(original, shrinked, gauss)
@@ -238,13 +246,15 @@ def sample(STN, success='default', LP='original', gauss=False):
 
     # Collect the sample data.
     count = 0
-    for i in range(50000):
-        result = sampleOnce(original, shrinked, gauss) if success == 'default' \
-                                else altSampleOnce(STN, schedule.copy())
+    for i in range(10000):
+        if success=='default':
+            result = sampleOnce(original, shrinked, gauss)
+        else:
+            result = altSampleOnce(STN, schedule.copy(), gauss)
         if result:
             count += 1
 
-    success = float(count/50000)
+    success = float(count/10000)
 
     return degree, success
 
