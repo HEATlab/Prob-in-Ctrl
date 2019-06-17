@@ -18,9 +18,51 @@ import math
 # \file empirical.py
 # \brief perform empirical analysis on degree of controllability metrics.
 
+
 # -------------------------------------------------------------------------
-# Strong controllability
+# Generating Results
 # -------------------------------------------------------------------------
+
+def generate_DDC_result(data_path, sim_num, out_name):
+    data_list = glob.glob(os.path.join(data_path, '*.json'))
+
+    result = {}
+
+    for data in data_list:
+        dispatch = simulate_file(data, sim_num)
+        ddc = prob_of_DC_file(data)
+
+        path, name = os.path.split(data)
+        result[name] = [ddc, dispatch]
+    
+    return result
+
+    # # Save the results
+    # with open(out_name, 'w') as f:
+    #     json.dump(result, f)
+
+    # print("Results saved to", out_name)
+
+
+def generate_result_relax(data_path, out_name):
+    data_list = glob.glob(os.path.join(data_path, '*.json'))
+
+    result = {}
+
+    for data in data_list:
+        STN = loadSTNfromJSONfile(data)
+        _, count, _, _ = relaxSearch(STN)
+
+        path, name = os.path.split(data)
+        result[name] = count
+
+    return results
+    # # Save the results
+    # with open(out_name, 'w') as f:
+    #     json.dump(result, f)
+
+    # print("Results saved to", out_name)
+
 
 def identify_outliers(values:dict, threshold):
     pairs = list(values.items())
@@ -37,7 +79,7 @@ def plot_from_dict(values:dict):
     x_vals = [x[1][0] for x in pairs]
     y_vals = [x[1][1] for x in pairs]
     plt.scatter(x_vals,y_vals)
-    plt.xlabel("Degree of Strong Controllability")
+    plt.xlabel("Degree of Controllability")
     plt.ylabel("Success Rate")
     plt.xticks(np.arange(0, 1, step=0.2))
     plt.show()
@@ -46,13 +88,16 @@ def plot_from_dict(values:dict):
 def sample_from_folder(folder_name, gauss=False, success='default', LP='original'):
     results = {}
     for filename in os.listdir(folder_name):
-        #print("-----------------------------")
         print(filename)
         STN = loadSTNfromJSONfile(folder_name + filename)
         degree, success_rate = sample(STN, success, LP, gauss)
         results[filename] = (degree, success_rate)
-        #print("-----------------------------")
     return results
+
+
+# -------------------------------------------------------------------------
+# Strong controllability
+# -------------------------------------------------------------------------
 
 
 ##
