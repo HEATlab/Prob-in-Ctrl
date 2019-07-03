@@ -38,9 +38,9 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 ##
 # \fn simulate_file(file_name, size)
 # \brief Record dispatch result for single file
-def simulate_file(file_name, size, verbose=False) -> float:
+def simulate_file(file_name, size, verbose=False, gauss=False) -> float:
     network = loadSTNfromJSONfile(file_name)
-    result = simulation(network, size, verbose)
+    result = simulation(network, size, verbose, gauss=False)
     if verbose:
         print(f"{file_name} worked {100*result}% of the time.")
     return result
@@ -48,7 +48,7 @@ def simulate_file(file_name, size, verbose=False) -> float:
 
 ##
 # \fn simulation(network, size)
-def simulation(network: STN, size: int, verbose=False) -> float:
+def simulation(network: STN, size: int, verbose=False, gauss=False) -> float:
     # Collect useful data from the original network
     contingent_pairs = network.contingentEdges.keys()
     contingents = {src: sink for (src, sink) in contingent_pairs}
@@ -77,7 +77,7 @@ def simulation(network: STN, size: int, verbose=False) -> float:
 
     # Run the simulation
     for j in range(size):
-        realization = generate_realization(network)
+        realization = generate_realization(network, gauss)
         copy = dc_network.copy()
         result = dispatch(network, copy, realization, contingents,
                           uncontrollables, verbose)
@@ -269,8 +269,13 @@ def dispatch(network: STN,
 ##
 # \fn generate_realization(network)
 # \brief Uniformly at random pick values for contingent edges in STNU
-def generate_realization(network: STN) -> dict:
+def generate_realization(network: STN, gauss=False) -> dict:
     realization = {}
     for nodes, edge in network.contingentEdges.items():
-        realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
+        if gauss:
+            mu = (edge.Cji + edge.Cij)/2 
+            sd = (edge.Cij - edge.Cji)/4
+            realization[nodes[1]] = random.normalvariate(mu, sd)
+        else:
+            realization[nodes[1]] = random.uniform(-edge.Cji, edge.Cij)
     return realization

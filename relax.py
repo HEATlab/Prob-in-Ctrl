@@ -209,6 +209,9 @@ def optimalRelax(bounds, weight):
     return epsilons
 
 
+def relaxTotalLength(bounds, weight):
+    return null
+
 ##
 # \fn relaxSearch(STN)
 # \brief run relaxation algorithm on an STNU so that it becomes dynamically
@@ -219,7 +222,6 @@ def optimalRelax(bounds, weight):
 # @return The dynamically controllable relaxed STNU and the number of conflict
 #         need to be resolved
 def relaxSearch(STN):
-    relexations = []
     result, conflicts, bounds, weight = DC_Checker(STN.copy(), report=False)
 
     count = 0
@@ -231,7 +233,6 @@ def relaxSearch(STN):
         weights.append(weight)
 
         epsilons = optimalRelax(bounds, weight)
-
         if not epsilons:
             print("The STNU cannot resolve the conflict...")
             return None, 0, None

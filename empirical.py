@@ -1,5 +1,4 @@
-from stn import STN
-from stn import loadSTNfromJSONfile
+from stn import STN, loadSTNfromJSONfile
 from LP import *
 from relax import *
 from util import *
@@ -23,25 +22,24 @@ import math
 # Generating Results
 # -------------------------------------------------------------------------
 
-def generate_DDC_result(data_path, sim_num, out_name):
+def generate_DDC_result(data_path, sim_num, out_name, gauss):
     data_list = glob.glob(os.path.join(data_path, '*.json'))
 
     result = {}
 
     for data in data_list:
-        dispatch = simulate_file(data, sim_num)
-        ddc = prob_of_DC_file(data)
+        dispatch = simulate_file(data, sim_num, False, gauss)
+        ddc = prob_of_DC_file(data, gauss)
 
         path, name = os.path.split(data)
         result[name] = [ddc, dispatch]
     
-    return result
+    #return result
 
-    # # Save the results
-    # with open(out_name, 'w') as f:
-    #     json.dump(result, f)
+    # Save the results
+    with open(out_name, 'w') as f:
+        json.dump(result, f)
 
-    # print("Results saved to", out_name)
 
 
 def generate_result_relax(data_path, out_name):
@@ -56,13 +54,17 @@ def generate_result_relax(data_path, out_name):
         path, name = os.path.split(data)
         result[name] = count
 
-    return results
-    # # Save the results
-    # with open(out_name, 'w') as f:
-    #     json.dump(result, f)
+    # return result
+    # Save the results
+    with open(out_name, 'w') as f:
+        json.dump(result, f)
 
-    # print("Results saved to", out_name)
 
+def compute_corr(values:dict):
+    pairs = list(values.items())
+    x_vals = [x[1][0] for x in pairs]
+    y_vals = [x[1][1] for x in pairs]
+    return np.corrcoef(x_vals,y_vals)
 
 def identify_outliers(values:dict, threshold):
     pairs = list(values.items())

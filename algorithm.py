@@ -111,16 +111,18 @@ def resolveNovel(e, novel, preds):
 # \fn getFinalResult(conflicts, STN, D, report=True)
 # \brief extract information about which constraint in the original STNU can
 #        be relaxed to resolve the conflict
+# \details edited on 7/3/19
 #
 # @param conflicts      A list of labeled edges along the negative cycle
 # @param STN            The original STNU
 # @param D              A dictionary containing info about added vertices
+# @param C              A list containing all contingent edges
 # @param report         Flag indicating whether to print message or not
 #
 # @return A dictionary containing information about the original constraints
 #         in the original STNU that we can relax and whether LOWER or UPPER
 #         bound can be relaxed
-def getFinalResult(conflicts, STN, D, report=True):
+def getFinalResult(conflicts, STN, D, C, report=True):
     ## Initialize the result dictionary
     result = {}
     result['requirement'] = {}
@@ -139,6 +141,12 @@ def getFinalResult(conflicts, STN, D, report=True):
             if start == e.j and edge.type == edgeType.UPPER:
                 result['contingent'][(e.i, e.j)] = (e, 'UPPER')
             elif start == e.i:
+                result['contingent'][(e.i, e.j)] = (e, 'LOWER')
+        elif (start,end) in C:
+            e = C[(start, end)]
+            if edge.type == edgeType.UPPER:
+                result['contingent'][(e.i, e.j)] = (e, 'UPPER')
+            else:
                 result['contingent'][(e.i, e.j)] = (e, 'LOWER')
         else:
             e = STN.getEdge(start, end)
@@ -252,7 +260,7 @@ def DCDijkstra(G, start, preds, novel, callStack, negNodes):
 #         return False, conflicts (in labeled graph), conflicts in original STNU,
 #         and weights of the negative cycle (conflict).
 def DC_Checker(STN, report=True):
-    G, D = normal(STN.copy())
+    G, C, D = normal(STN.copy())
     negNodes = G.getNegNodes()
     novel = []
     preds = {}
@@ -263,7 +271,7 @@ def DC_Checker(STN, report=True):
 
         if not result:
             conflicts = extractConflict(edges, novel, preds)
-            bounds = getFinalResult(conflicts, STN, D, report=report)
+            bounds = getFinalResult(conflicts, STN, D, C, report=report)
 
             weight = 0
             for e in edges:
