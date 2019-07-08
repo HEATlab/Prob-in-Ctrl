@@ -25,17 +25,17 @@ from util import *
 def extractEdgePath(s, v, labelDist, unlabelDist):
     result = []
 
-    while True:
         # check which edge dictionary we should use
-        if v in labelDist and v in unlabelDist:
-            if not labelDist[v][1]:
-                distArray = unlabelDist
-            if not unlabelDist[v][1]:
-                distArray = labelDist
-        elif v in labelDist:
-            distArray = labelDist
-        else:
+    if v in labelDist and v in unlabelDist:
+        if not labelDist[v][1]:
             distArray = unlabelDist
+        if not unlabelDist[v][1]:
+            distArray = labelDist
+    elif v in labelDist:
+        distArray = labelDist
+    else:
+        distArray = unlabelDist
+    while True:
 
         # add the current edge to the path and continue iterating until
         # we reach the end node
