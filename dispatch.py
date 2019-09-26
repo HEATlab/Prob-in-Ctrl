@@ -38,6 +38,12 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 ##
 # \fn simulate_file(file_name, size)
 # \brief Record dispatch result for single file
+# 
+# @param file_name      The name of the STNU file to simulate
+# @param size           The number of simulations to run     
+# @param verbose        Prints extra statements when set to True
+# @param gauss          Simulates dispatch as if STNU were a PSTN
+#                       (chooses realizations based on gaussian distribution)
 def simulate_file(file_name, size, verbose=False, gauss=False) -> float:
     network = loadSTNfromJSONfile(file_name)
     result = simulation(network, size, verbose, gauss=False)
@@ -233,6 +239,16 @@ def dispatch(network: STN,
                                       edge)
                             ready = False
                             break
+                    elif edge.weight == 0:
+                        if (edge.j, edge.i) in dc_network.edges:
+                            if dc_network.edges[(edge.j, edge.i)][0].weight != 0:
+                                if edge.j not in executed:
+                                    ready = False
+                                    break
+                        else:
+                            if edge.j not in executed:
+                                ready = False
+                                break
 
                 # Check wait constraints
                 outgoing_upper = dc_network.verts[event].outgoing_upper

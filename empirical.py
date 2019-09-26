@@ -22,6 +22,16 @@ import math
 # Generating Results
 # -------------------------------------------------------------------------
 
+##
+# \fn generate_DDC_result(data_path, sim_num, out_name, gauss)
+# \brief generates a json file with DDC and success rate for each STNU
+#        instance
+#
+# @param data_path              The file path to the folder of STNUs
+# @param sim_num                The number of simulations to perform
+# @param out_name               The name for the output file
+# @param gauss                  Boolean determining if STNU should be treated
+#                               like a PSTN 
 def generate_DDC_result(data_path, sim_num, out_name, gauss):
     data_list = glob.glob(os.path.join(data_path, '*.json'))
 
