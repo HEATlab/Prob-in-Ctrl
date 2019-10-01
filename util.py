@@ -1,4 +1,3 @@
-
 from stn import STN
 from stn import loadSTNfromJSONfile
 from dc_stn import DC_STN, edgeType
@@ -75,27 +74,31 @@ def dc_checking_file(filename):
 # \details  a normal form labeled graph is needed for Williams algorithm.
 #           The robotbrunch DC_STN class keeps track of the upper, lower case
 #           edges, so we need to use it for labeled graph.
+#           Changed on 7/3/19
 #
 # @param STN  an STN to convert
 #
-# @return Return the DC_STN that is the normal form labeled graph for input STN
-#         and a dictionary storing vertices added to create normal form
+# @return Return the DC_STN that is the normal form labeled graph for input STN,
+#         a list storing all contingent edges of form [0, x],
+#         and a dictionary of just vertices added to create normal form)
 def normal(STN):
     new = DC_STN()
     for i in list(STN.verts.keys()):
         new.addVertex(i)
 
     changed = {}
+    contingents = {}
     for e in list(STN.edges.values()):
         if not e.isContingent():
             new.addEdge(e.i, e.j, e.Cij)
             new.addEdge(e.j, e.i, e.Cji)
         else:
+            contingents[(e.i,e.j)] = e
+            contingents[(e.j,e.i)] = e
             if e.Cji != 0:
                 new_vert = len(new.verts)
                 changed[new_vert] = e
                 new.addVertex(new_vert)
-
                 new.addEdge(e.i, new_vert, -e.Cji)
                 new.addEdge(new_vert, e.i, e.Cji)
 
@@ -117,7 +120,7 @@ def normal(STN):
                     e.i, e.j, -e.Cji, edge_type=edgeType.LOWER, parent=e.j)
                 new.addEdge(
                     e.j, e.i, -e.Cij, edge_type=edgeType.UPPER, parent=e.j)
-    return new, changed
+    return new, contingents, changed
 
 
 ##
