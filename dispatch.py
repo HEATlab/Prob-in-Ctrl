@@ -44,6 +44,7 @@ def simulate_and_save(file_names: list, size: int, out_name: str):
 # @param verbose        Prints extra statements when set to True
 # @param gauss          Simulates dispatch as if STNU were a PSTN
 #                       (chooses realizations based on gaussian distribution)
+#                       when set to True
 def simulate_file(file_name, size, verbose=False, gauss=False) -> float:
     network = loadSTNfromJSONfile(file_name)
     result = simulation(network, size, verbose, gauss=False)
@@ -54,6 +55,13 @@ def simulate_file(file_name, size, verbose=False, gauss=False) -> float:
 
 ##
 # \fn simulation(network, size)
+# 
+# @param network        The STNU to simulate
+# @param size           The number of simulations to run     
+# @param verbose        Prints extra statements when set to True
+# @param gauss          Simulates dispatch as if STNU were a PSTN
+#                       (chooses realizations based on gaussian distribution)
+#                       when set to True
 def simulation(network: STN, size: int, verbose=False, gauss=False) -> float:
     # Collect useful data from the original network
     contingent_pairs = network.contingentEdges.keys()
@@ -285,6 +293,11 @@ def dispatch(network: STN,
 ##
 # \fn generate_realization(network)
 # \brief Uniformly at random pick values for contingent edges in STNU
+# 
+# @param network        The STNU to simulate
+# @param gauss          chooses realizations as if edges were gaussian
+#                       where mean is the center of uncertain durations
+#                       and stddev is 1/4 the spread when set to True
 def generate_realization(network: STN, gauss=False) -> dict:
     realization = {}
     for nodes, edge in network.contingentEdges.items():

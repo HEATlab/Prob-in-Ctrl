@@ -51,7 +51,16 @@ def generate_DDC_result(data_path, sim_num, out_name, gauss):
         json.dump(result, f)
 
 
-
+##
+# \fn generate_result_relax(data_path, out_name)
+# \brief generates a json file that describes if each STNU
+#        instance was relaxed
+#
+# @param data_path              The file path to the folder of STNUs
+# @param sim_num                The number of simulations to perform
+# @param out_name               The name for the output file
+# @param gauss                  Boolean determining if STNU should be treated
+#                               like a PSTN 
 def generate_result_relax(data_path, out_name):
     data_list = glob.glob(os.path.join(data_path, '*.json'))
 

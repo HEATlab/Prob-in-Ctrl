@@ -89,7 +89,7 @@ def plot_strong_1():
 #  \fn plot_strong_2
 #  \brief plot the empirical success rate vs. the LP-predicted DSC
 def plot_strong_2():
-    with open('result/result_success.json', 'r') as f:
+    with open('result/PSTN_DSC_success.json', 'r') as f:
         result_success = json.loads(f.read())
 
     dynamic = []
@@ -164,9 +164,9 @@ def plot_strong_2():
 #  \fn plot_dynamic
 #  \brief plot the empirical success rate vs. approximated DDC
 def plot_dynamic():
-    with open('result/result_dynamic.json', 'r') as f:
+    with open('result/PSTN_DDC_success.json', 'r') as f:
         result_dynamic = json.loads(f.read())
-    with open('../../../result_relax.json', 'r') as f:
+    with open('result/result_relax.json', 'r') as f:
         result_relax = json.loads(f.read())
 
     once = []

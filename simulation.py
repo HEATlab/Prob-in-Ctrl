@@ -158,7 +158,7 @@ def safely_scheduled(network: STN, partial: dict, event) -> bool:
             boundedBelow = (partial[end] - partial[start]) >= lBound - epsilon
 
             if ((not boundedAbove) or (not boundedBelow)):
-                print("Violated constraint", edge)
+                #print("Violated constraint", edge)
                 return False
     return True
 

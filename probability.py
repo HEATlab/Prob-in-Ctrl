@@ -13,23 +13,27 @@ from typing import List
 
 ##
 # \fn prob_small_sum(lengths, S)
-# \brief
 #
 # @param lengths   An array of the lengths l_i
 # @param S         A sum the (a_i)s should be less than
+# @param gauss     When set to true, calcuates probability based on
+#                  assumption that edges are gaussian
 #
 # @return          The probability that a_1 + ... + a_n <= S given
-#                  that a_i ~ U(0, l_i)
-def prob_small_sum(lengths: list, S: float) -> float:
+#                  that a_i ~ U(0, l_i) if not gauss, or a_i ~ N(l_i/2, l_i/4)
+#                  otherwise
+def prob_small_sum(lengths: list, S: float, gauss) -> float:
     mean = 0.0
     variance = 0.0
-    N = len(lengths)
 
     for l in lengths:
         mean += l
-        variance += l * l
+        if gauss:
+            variance += (l * l)/16
+        else:
+            variance += (l * l)/12
     mean = mean / 2
-    variance = variance / 12
+    variance = variance
 
     z_score = (S - mean) / sqrt(variance)
 
@@ -55,26 +59,30 @@ def special_prob(lengths: list, S: float) -> float:
 
 ##
 # \fn prob_of_DC_file()
-def prob_of_DC_file(file_name: str) -> float:
+def prob_of_DC_file(file_name: str, gauss) -> float:
     network = loadSTNfromJSONfile(file_name)
-    return prob_of_DC(network)
+    return prob_of_DC(network, gauss)
 
 
-def prob_of_multiple_conflicts(lengths_list: List[list], weights: List[float]):
+def prob_of_multiple_conflicts(lengths_list: List[list], weights: List[float], gauss):
     probability = 1.0
     m = len(lengths_list)
     assert len(weights) == m, "The input lists have different lengths!"
 
     for j in range(m):
-        probability = probability * (prob_small_sum(lengths_list[j],
-                                                    weights[j]))
+        probability *= prob_small_sum(lengths_list[j], weights[j], gauss)
 
     return probability
 
 
 ##
 # \fn prob_of_DC()
-def prob_of_DC(network: STN) -> float:
+#
+# @param network   The STNU we're finding DDC for
+# @param gauss     When set to true, calcuates probability based on
+#                  assumption that edges are gaussian
+#
+def prob_of_DC(network: STN, gauss) -> float:
     _, num_conflicts, cycles, neg_weights = relaxSearch(network)
 
     lengths_list = [[] for j in range(num_conflicts)]
@@ -88,4 +96,4 @@ def prob_of_DC(network: STN) -> float:
         S = sum(lengths_list[j]) + neg_weights[j]
         weights_list.append(S)
 
-    return prob_of_multiple_conflicts(lengths_list, weights_list)
+    return prob_of_multiple_conflicts(lengths_list, weights_list, gauss)
