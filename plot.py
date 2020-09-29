@@ -1,4 +1,6 @@
-import plotly.plotly as py
+import plotly.io as pio
+pio.templates.default = "none"
+
 import plotly.graph_objs as go
 import numpy as np
 import json
@@ -122,7 +124,7 @@ def plot_strong_2():
         ))
 
     layout = go.Layout(
-        title='<b>Fixed Decision Success Rate</b>',
+        title='<b>Dispatch Success Rate</b>',
         titlefont=dict(
             size=24,
             color='black',
@@ -133,7 +135,7 @@ def plot_strong_2():
             font=dict(size=20, ),
         ),
         xaxis=dict(
-            title='LP-Predicted Degree of Strong Controllability',
+            title='LP-Predicted Likelihood of Strong Controllability',
             titlefont=dict(
                 size=18,
                 color='black',
@@ -144,7 +146,7 @@ def plot_strong_2():
                 color='black',
             )),
         yaxis=dict(
-            title='Empirical Success Rate',
+            title='Dispatch Success Rate',
             titlefont=dict(
                 size=18,
                 color='black',
@@ -157,7 +159,7 @@ def plot_strong_2():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    py.image.save_as(fig, filename='success.png', scale=3)
+    fig.write_image("PSTN_strong.png")
 
 
 ##
@@ -210,7 +212,7 @@ def plot_dynamic():
             font=dict(size=15, ),
         ),
         xaxis=dict(
-            title='Predicted Degree of Dynamic Controllability',
+            title='Approximated Likelihood of Dynamic Controllability',
             titlefont=dict(
                 size=18,
                 color='black',
@@ -221,7 +223,7 @@ def plot_dynamic():
                 color='black',
             )),
         yaxis=dict(
-            title='Empirical Success Rate',
+            title='Dispatch Success Rate',
             titlefont=dict(
                 size=18,
                 color='black',
@@ -234,4 +236,4 @@ def plot_dynamic():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    py.image.save_as(fig, filename='dynamic.png', scale=3)
+    fig.write_image("PSTN_dynamic.png")
