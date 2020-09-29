@@ -4,6 +4,7 @@ pio.templates.default = "none"
 import plotly.graph_objs as go
 import numpy as np
 import json
+from IPython.display import Image
 
 ##
 # \file plot.py
@@ -159,7 +160,7 @@ def plot_strong_2():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    fig.write_image("PSTN_strong.png")
+    fig.write_image("PSTN_strong.png", scale=4)
 
 
 ##
@@ -236,4 +237,4 @@ def plot_dynamic():
 
     data = [trace0, trace1]
     fig = go.Figure(data=data, layout=layout)
-    fig.write_image("PSTN_dynamic.png")
+    fig.write_image("PSTN_dynamic.png", scale=4)
